@@ -24,5 +24,5 @@ npm run setup:watch
 #### Production/Testing
 Jalankan command berikut:
 ```bash
-npm run setup:watch
+npm run setup:build
 ```
