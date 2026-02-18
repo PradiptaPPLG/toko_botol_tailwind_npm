@@ -13,5 +13,6 @@ if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
 }
 
-$base_url = 'http://localhost/kasir_toko/';
+$root = '/toko_botol_tailwind_npm/';
+$base_url = 'http://localhost'.$root;
 ?>

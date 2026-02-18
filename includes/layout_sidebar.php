@@ -1,7 +1,8 @@
 <?php
 $current_page = basename($_SERVER['PHP_SELF']);
 $is_admin = is_admin();
-$root_path = '/kasir_toko/';
+require_once 'config.php';
+$root_path = $root ?? '';
 ?>
 
 <!-- Mobile Menu Button -->
