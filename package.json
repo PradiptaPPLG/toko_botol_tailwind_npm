@@ -4,8 +4,11 @@
   "description": "Aplikasi Kasir Toko Botol",
   "main": "index.js",
   "scripts": {
-    "build": "tailwindcss -i ./src/input.css -o ./dist/tailwind.css --minify",
-    "watch": "tailwindcss -i ./src/input.css -o ./dist/tailwind.css --watch"
+    "setup": "npm install && cp includes/config.php.example includes/config.php",
+    "build": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/tailwind.css --minify -y",
+    "watch": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/tailwind.css --watch -y",
+    "setup:build": "npm run setup && npm run build",
+    "setup:watch": "npm run setup && npm run watch"
   },
   "keywords": [],
   "author": "",

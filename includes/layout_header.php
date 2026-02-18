@@ -1,3 +1,7 @@
+<?php
+require_once 'config.php';
+$root_path = $root ?? '';
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -6,7 +10,7 @@
     <title><?= $title ?? 'Aplikasi Kasir Botol' ?></title>
 
     <!-- Tailwind NPM BUILD (PRODUCTION) -->
-     <link href="/kasir_toko/dist/tailwind.css" rel="stylesheet">
+     <link href="<?= $root_path ?>dist/tailwind.css" rel="stylesheet"> <!-- href nya harus diubah jadi relative path -->
 
     <!-- Custom CSS (JANGAN DIUBAH) -->
     <style>
