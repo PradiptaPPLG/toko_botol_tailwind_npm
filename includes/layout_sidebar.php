@@ -22,7 +22,7 @@ $root_path = $root ?? '';
     
     <!-- SIDEBAR -->
     <div id="sidebar" 
-         class="fixed lg:relative top-0 left-0 h-full w-64 bg-gradient-to-b from-blue-900 to-blue-800 text-white flex flex-col shadow-2xl z-50 
+         class="fixed lg:relative top-0 left-0 h-full w-64 bg-gradient-to-b from-blue-900 to-blue-800 text-white flex flex-col shadow-2xl z-50
                 transition-all duration-300 ease-in-out
                 -translate-x-full lg:translate-x-0">
         
@@ -98,7 +98,7 @@ $root_path = $root ?? '';
                 <?php endif; ?>
                 
                 <li class="pt-6 mt-6 border-t border-blue-700">
-                    <a href="<?= $root_path ?>logout.php" 
+                    <a href="<?= $root_path ?>logout.php" onclick="return confirm('Yakin ingin keluar?')"
                        class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-red-600 hover:shadow-lg text-red-200 hover:text-white">
                         <span class="text-xl mr-3">🚪</span> 
                         <span>Keluar</span>
