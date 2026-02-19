@@ -1,3 +1,4 @@
+
 <?php
 require_once 'database.php';
 
@@ -33,28 +34,31 @@ function get_stok_cabang($produk_id, $cabang_id) {
 }
 
 function cek_selisih_stok() {
-    $produk = get_produk();
+    // This function now checks for actual stock discrepancies based on recent stock opname
+    // Only shows warning if physical count (stok_fisik) is less than system (HILANG status)
     $warning = [];
-    
-    foreach ($produk as $p) {
-        $stok_gudang = $p['stok_gudang'];
-        $total_stok_cabang = 0;
-        
-        $stok_cabang = query("SELECT SUM(stok) as total FROM stok_cabang WHERE produk_id = {$p['id']}");
-        if (count($stok_cabang) > 0 && $stok_cabang[0]['total']) {
-            $total_stok_cabang = $stok_cabang[0]['total'];
-        }
-        
-        if ($total_stok_cabang > $stok_gudang) {
-            $warning[] = [
-                'produk' => $p['nama_produk'],
-                'stok_gudang' => $stok_gudang,
-                'stok_kasir' => $total_stok_cabang,
-                'selisih' => $total_stok_cabang - $stok_gudang
-            ];
-        }
+
+    // Get recent stock opname with HILANG status (within last 7 days)
+    $recent_so = query("
+        SELECT so.*, p.nama_produk, p.stok_gudang
+        FROM stock_opname so
+        JOIN produk p ON so.produk_id = p.id
+        WHERE so.status = 'HILANG'
+        AND so.tanggal >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        ORDER BY so.tanggal DESC
+    ");
+
+    foreach ($recent_so as $so) {
+        $warning[] = [
+            'produk' => $so['nama_produk'],
+            'stok_gudang' => $so['stok_gudang'],
+            'stok_sistem' => $so['stok_sistem'],
+            'stok_fisik' => $so['stok_fisik'],
+            'selisih' => $so['selisih'],
+            'tanggal' => $so['tanggal']
+        ];
     }
-    
+
     return $warning;
 }
 
