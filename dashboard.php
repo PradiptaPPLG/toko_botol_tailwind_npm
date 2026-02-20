@@ -39,15 +39,15 @@ $transaksi_terbaru = query("
         <div class="flex items-start sm:items-center flex-col sm:flex-row">
             <span class="text-3xl sm:text-4xl mr-0 sm:mr-4 mb-2 sm:mb-0">⚠️</span>
             <div>
-                <h2 class="text-xl sm:text-2xl font-bold">PERINGATAN! STOK TIDAK SESUAI</h2>
-                <p class="text-base sm:text-lg">Stok di kasir lebih banyak dari stok gudang!</p>
+                <h2 class="text-xl sm:text-2xl font-bold">PERINGATAN! DITEMUKAN SELISIH STOK</h2>
+                <p class="text-base sm:text-lg">Berdasarkan Stock Opname 7 hari terakhir</p>
             </div>
         </div>
         <div class="mt-4 bg-red-700 p-3 sm:p-4 rounded space-y-2">
             <?php foreach ($cek_hilang as $w): ?>
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-red-500 py-2 text-sm sm:text-base">
                 <span class="font-bold"><?= $w['produk'] ?></span>
-                <span>Stok Gudang: <?= $w['stok_gudang'] ?> | Stok Kasir: <?= $w['stok_kasir'] ?></span>
+                <span>Sistem: <?= $w['stok_sistem'] ?> | Fisik: <?= $w['stok_fisik'] ?> | <?= date('d/m/Y', strtotime($w['tanggal'])) ?></span>
                 <span class="bg-red-800 px-2 sm:px-3 py-1 rounded-full text-white font-bold text-sm sm:text-base mt-1 sm:mt-0">
                     HILANG <?= $w['selisih'] ?> BOTOL
                 </span>
