@@ -1,20 +1,28 @@
 <?php
+
+use JetBrains\PhpStorm\NoReturn;
+
 require_once 'database.php';
 
-function is_login() {
+function is_login(): bool
+{
     return isset($_SESSION['user']);
 }
 
-function is_admin() {
+function is_admin(): bool
+{
     return isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'admin';
 }
 
-function redirect($url) {
+#[NoReturn]
+function redirect($url): void
+{
     header("Location: $url");
     exit;
 }
 
-function login_admin($username, $password) {
+function login_admin($username, $password): bool
+{
     $username = escape_string($username);
     $result = query("SELECT * FROM admin WHERE username = '$username'");
     
@@ -33,7 +41,8 @@ function login_admin($username, $password) {
     return false;
 }
 
-function login_kasir($nama, $cabang_id) {
+function login_kasir($nama, $cabang_id): true
+{
     $nama = escape_string($nama);
     $cabang_id = intval($cabang_id);
     
@@ -53,7 +62,9 @@ function login_kasir($nama, $cabang_id) {
     return true;
 }
 
-function logout() {
+#[NoReturn]
+function logout(): void
+{
     if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'kasir') {
         $id = $_SESSION['user']['id'];
         execute("UPDATE session_kasir SET logout_time = NOW(), status = 'logout' WHERE id = $id");
@@ -61,4 +72,3 @@ function logout() {
     session_destroy();
     redirect('login.php');
 }
-?>

@@ -40,11 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $cabang = query("SELECT * FROM cabang");
 ?>
 <?php include 'includes/layout_header.php'; ?>
-<body class="bg-gradient-to-br from-blue-900 to-blue-700">
+<body class="bg-linear-to-br from-blue-900 to-blue-700">
     <div class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
             <div class="text-center mb-8">
-                <h1 class="text-4xl font-bold text-gray-800 mb-2">🥤 TOKO BOTOL</h1>
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">🥤 TOKO PDK</h1>
                 <p class="text-gray-600">Sistem Kasir & Gudang</p>
             </div>
             
@@ -69,17 +69,21 @@ $cabang = query("SELECT * FROM cabang");
                 <form method="POST" class="space-y-6">
                     <div>
                         <label class="block text-gray-700 font-medium mb-2">👤 Nama Kasir</label>
-                        <input type="text" name="nama_kasir" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg" placeholder="Masukkan nama Anda">
+                        <label>
+                            <input type="text" name="nama_kasir" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg" placeholder="Masukkan nama Anda">
+                        </label>
                     </div>
                     
                     <div>
                         <label class="block text-gray-700 font-medium mb-2">📍 Pilih Cabang</label>
-                        <select name="cabang_id" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg">
-                            <option value="">-- Pilih Cabang --</option>
-                            <?php foreach ($cabang as $c): ?>
-                            <option value="<?= $c['id'] ?>"><?= $c['nama_cabang'] ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                        <label>
+                            <select name="cabang_id" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg">
+                                <option value="">-- Pilih Cabang --</option>
+                                <?php foreach ($cabang as $c): ?>
+                                <option value="<?= $c['id'] ?>"><?= $c['nama_cabang'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </label>
                     </div>
                     
                     <button type="submit" name="login_kasir" class="w-full btn-primary text-white font-bold py-4 px-4 rounded-lg text-lg">
@@ -93,12 +97,16 @@ $cabang = query("SELECT * FROM cabang");
                 <form method="POST" class="space-y-6">
                     <div>
                         <label class="block text-gray-700 font-medium mb-2">🔑 Username</label>
-                        <input type="text" name="username" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg" placeholder="Masukkan username">
+                        <label>
+                            <input type="text" name="username" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg" placeholder="Masukkan username">
+                        </label>
                     </div>
                     
                     <div>
                         <label class="block text-gray-700 font-medium mb-2">🔒 Password</label>
-                        <input type="password" name="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg" placeholder="Masukkan password">
+                        <label>
+                            <input type="password" name="password" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg" placeholder="Masukkan password">
+                        </label>
                     </div>
                     
                     <button type="submit" name="login_admin" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-4 px-4 rounded-lg text-lg">

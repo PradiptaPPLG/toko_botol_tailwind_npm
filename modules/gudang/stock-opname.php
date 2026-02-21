@@ -41,7 +41,7 @@ $total_rupiah_hilang = query("
     </div>
     
     <!-- Total Kerugian -->
-    <div class="bg-gradient-to-r from-red-600 to-red-800 text-white p-6 rounded-lg shadow-lg mb-6">
+    <div class="bg-linear-to-r from-red-600 to-red-800 text-white p-6 rounded-lg shadow-lg mb-6">
         <div class="flex justify-between items-center">
             <div>
                 <p class="text-2xl font-bold mb-2">💰 TOTAL KERUGIAN</p>
