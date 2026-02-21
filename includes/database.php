@@ -25,13 +25,14 @@ function execute($sql) {
     return $result;
 }
 
-function escape_string($string) {
+function escape_string($string): string
+{
     global $conn;
     return $conn->real_escape_string($string);
 }
 
-function last_insert_id() {
+function last_insert_id(): int|string
+{
     global $conn;
     return $conn->insert_id;
 }
-?>

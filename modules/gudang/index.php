@@ -12,6 +12,9 @@ $produk = get_produk();
 $cek_hilang = cek_selisih_stok();
 $cabang = get_cabang();
 
+// Include confirmation modal
+include '../../includes/modal_confirm.php';
+
 // Proses BATCH STOK MASUK
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['batch_stok_masuk'])) {
     $cart_items = json_decode($_POST['cart_data'], true);
@@ -152,7 +155,7 @@ $cek_hilang = cek_selisih_stok();
 <div class="p-4 lg:p-6">
     <!-- Header -->
     <div class="bg-white rounded-lg shadow p-4 mb-4">
-        <h1 class="text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
+        <h1 class="judul text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
             <span class="mr-3">🏚️</span> MANAJEMEN GUDANG
         </h1>
         <p class="text-sm text-gray-600 mt-1">👤 <?= $_SESSION['user']['nama'] ?></p>
@@ -249,7 +252,7 @@ $cek_hilang = cek_selisih_stok();
                         <?php foreach ($produk as $p): ?>
                         <div class="product-card bg-white border-2 border-gray-200 rounded-lg p-3"
                              onclick="addToCartMasuk(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>', <?= $p['stok_gudang'] ?>)">
-                            <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg h-20 flex items-center justify-center mb-2">
+                            <div class="bg-linear-to-br from-green-50 to-green-100 rounded-lg h-20 flex items-center justify-center mb-2">
                                 <span class="text-3xl">🥤</span>
                             </div>
                             <h3 class="font-bold text-sm mb-1 truncate"><?= $p['nama_produk'] ?></h3>
@@ -280,9 +283,11 @@ $cek_hilang = cek_selisih_stok();
                             <input type="hidden" name="cart_data" id="cart-masuk-data">
 
                             <div class="mb-3">
-                                <label class="block text-sm font-medium mb-2">Keterangan</label>
-                                <input type="text" name="keterangan" class="w-full border rounded-lg p-2 text-sm"
-                                       placeholder="Dari supplier X..." required>
+                                <label class="block text-sm font-medium mb-2">Keterangan (Opsional)</label>
+                                <label>
+                                    <input type="text" name="keterangan" class="w-full border rounded-lg p-2 text-sm"
+                                           placeholder="Dari supplier X...">
+                                </label>
                             </div>
 
                             <button type="submit" id="btn-submit-masuk"
@@ -314,7 +319,7 @@ $cek_hilang = cek_selisih_stok();
                         <?php $disabled = $p['stok_gudang'] <= 0 ? 'opacity-50 cursor-not-allowed' : ''; ?>
                         <div class="product-card bg-white border-2 border-gray-200 rounded-lg p-3 <?= $disabled ?>"
                              onclick="<?= $p['stok_gudang'] > 0 ? 'addToCartKeluar('.$p['id'].', \''.htmlspecialchars($p['nama_produk']).'\', '.$p['stok_gudang'].')' : '' ?>">
-                            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg h-20 flex items-center justify-center mb-2">
+                            <div class="bg-linear-to-br from-yellow-50 to-yellow-100 rounded-lg h-20 flex items-center justify-center mb-2">
                                 <span class="text-3xl">🥤</span>
                             </div>
                             <h3 class="font-bold text-sm mb-1 truncate"><?= $p['nama_produk'] ?></h3>
@@ -350,7 +355,7 @@ $cek_hilang = cek_selisih_stok();
                     <!-- Cabang Tujuan -->
                     <div id="div-cabang-tujuan" class="mb-4 hidden">
                         <label class="block text-sm font-medium mb-2">Tujuan Cabang:</label>
-                        <select name="cabang_tujuan" id="select-cabang" class="w-full border rounded-lg p-2 text-sm">
+                        <label for="select-cabang"></label><select name="cabang_tujuan" id="select-cabang" class="w-full border rounded-lg p-2 text-sm">
                             <?php foreach ($cabang as $c): ?>
                             <option value="<?= $c['id'] ?>"><?= $c['nama_cabang'] ?></option>
                             <?php endforeach; ?>
@@ -374,9 +379,11 @@ $cek_hilang = cek_selisih_stok();
                             <input type="hidden" name="cabang_tujuan" id="form-cabang-tujuan">
 
                             <div class="mb-3">
-                                <label class="block text-sm font-medium mb-2">Keterangan</label>
-                                <textarea name="keterangan" rows="2" class="w-full border rounded-lg p-2 text-sm"
-                                          placeholder="Keterangan..." required></textarea>
+                                <label class="block text-sm font-medium mb-2">Keterangan (Opsional)</label>
+                                <label>
+<textarea name="keterangan" rows="2" class="w-full border rounded-lg p-2 text-sm"
+          placeholder="Keterangan..."></textarea>
+                                </label>
                             </div>
 
                             <button type="submit" id="btn-submit-keluar"
@@ -408,26 +415,34 @@ $cek_hilang = cek_selisih_stok();
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Produk</label>
-                                <select name="produk_id" required class="w-full border rounded-lg p-3">
-                                    <?php foreach ($produk as $p): ?>
-                                    <option value="<?= $p['id'] ?>"><?= $p['nama_produk'] ?></option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <label>
+                                    <select name="produk_id" required class="w-full border rounded-lg p-3">
+                                        <?php foreach ($produk as $p): ?>
+                                        <option value="<?= $p['id'] ?>"><?= $p['nama_produk'] ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </label>
                             </div>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Stok Fisik</label>
-                                <input type="number" name="stok_fisik" min="0" required class="w-full border rounded-lg p-3">
+                                <label>
+                                    <input type="number" name="stok_fisik" min="0" required class="w-full border rounded-lg p-3">
+                                </label>
                             </div>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Petugas</label>
-                                <input type="text" name="petugas" required class="w-full border rounded-lg p-3" value="<?= $_SESSION['user']['nama'] ?>">
+                                <label>
+                                    <input type="text" name="petugas" required class="w-full border rounded-lg p-3" value="<?= $_SESSION['user']['nama'] ?>">
+                                </label>
                             </div>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Tanggal</label>
-                                <input type="date" name="tanggal" required class="w-full border rounded-lg p-3" value="<?= date('Y-m-d') ?>">
+                                <label>
+                                    <input type="date" name="tanggal" required class="w-full border rounded-lg p-3" value="<?= date('Y-m-d') ?>">
+                                </label>
                             </div>
                         </div>
-                        <button type="submit" name="stock_opname" class="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg text-lg">
+                        <button onclick="confirm('Apakah Anda yakin?')" type="submit" name="stock_opname" class="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg text-lg">
                             🔍 HITUNG SELISIH
                         </button>
                     </form>
@@ -474,11 +489,15 @@ $cek_hilang = cek_selisih_stok();
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Nominal</label>
-                                <input type="number" name="nominal" min="0" required class="w-full border rounded-lg p-3" placeholder="Rp 0">
+                                <label>
+                                    <input type="number" name="nominal" min="0" required class="w-full border rounded-lg p-3" placeholder="Rp 0">
+                                </label>
                             </div>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Keterangan</label>
-                                <input type="text" name="keterangan" required class="w-full border rounded-lg p-3" placeholder="Listrik, air, dll">
+                                <label>
+                                    <input type="text" name="keterangan" required class="w-full border rounded-lg p-3" placeholder="Listrik, air, dll">
+                                </label>
                             </div>
                             <button type="submit" name="tambah_pengeluaran" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg text-lg">
                                 💰 CATAT PENGELUARAN

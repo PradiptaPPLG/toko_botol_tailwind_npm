@@ -48,7 +48,11 @@ $root_path = $root ?? '';
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             border-radius: 0.5rem;
         }
-        
+        @media (max-width: 1000px) {
+            .judul {
+                margin-left: 3rem !important;
+            }
+        }
         /* Mobile Menu */
         @media (max-width: 768px) {
             .sidebar {
@@ -91,8 +95,25 @@ $root_path = $root ?? '';
             transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
             transition-duration: 150ms;
         }
+
+        /* Custom Confirmation Modal */
+        #confirmModal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #confirmModal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        #confirmModal .modal-content {
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+        }
+        #confirmModal.show .modal-content {
+            transform: scale(1);
+        }
     </style>
 </head>
 
 <body class="font-sans antialiased bg-gray-100">
 <!-- AWAL BODY - TIDAK ADA DIV FLEX DISINI -->
+<!-- Modal confirmation is loaded conditionally via includes/modal_confirm.php on pages that need it -->
