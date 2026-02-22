@@ -29,10 +29,10 @@ $root_path = $root ?? '';
         <!-- Header -->
         <div class="p-6 border-b border-blue-700">
             <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold flex items-center">
-                    <span class="mr-2">🥤</span> 
-                    <span>Kasir Botol</span>
-                </h2>
+                <p class="text-2x1 font-bold flex items-center">
+                    <span class="mr-2">🛒</span> 
+                    <span>Toko PDK</span>
+                </p>
                 <button id="closeBtn" class="lg:hidden text-white hover:text-blue-200 text-2xl">
                     ✕
                 </button>
@@ -58,32 +58,77 @@ $root_path = $root ?? '';
                 <li>
                     <a href="<?= $root_path ?>modules/gudang/index.php" 
                        class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
-                              <?= strpos($_SERVER['REQUEST_URI'], '/gudang/') !== false ? 'bg-blue-700 shadow-lg' : '' ?>">
+                              <?= str_contains($_SERVER['REQUEST_URI'], '/gudang/') ? 'bg-blue-700 shadow-lg' : '' ?>">
                         <span class="text-xl mr-3">🏚️</span> 
                         <span>Gudang</span>
                     </a>
                 </li>
                 <li>
-                    <a href="<?= $root_path ?>modules/kasir/index.php" 
+                    <a href="<?= $root_path ?>modules/kasir/index.php"
                        class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
-                              <?= strpos($_SERVER['REQUEST_URI'], '/kasir/') !== false ? 'bg-blue-700 shadow-lg' : '' ?>">
-                        <span class="text-xl mr-3">🛒</span> 
+                              <?= str_contains($_SERVER['REQUEST_URI'], '/kasir/') ? 'bg-blue-700 shadow-lg' : '' ?>">
+                        <span class="text-xl mr-3">🛒</span>
                         <span>Transaksi</span>
                     </a>
                 </li>
+
+                <!-- Info Cabang Dropdown -->
                 <li>
-                    <a href="<?= $root_path ?>modules/admin/laporan.php" 
-                       class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
-                              <?= strpos($_SERVER['REQUEST_URI'], '/laporan') !== false ? 'bg-blue-700 shadow-lg' : '' ?>">
-                        <span class="text-xl mr-3">📈</span> 
-                        <span>Laporan</span>
-                    </a>
+                    <button onclick="toggleDropdown('infoCabang')"
+                            class="w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
+                                   <?= str_contains($_SERVER['REQUEST_URI'], '/info_cabang') ? 'bg-blue-700 shadow-lg' : '' ?>">
+                        <div class="flex items-center">
+                            <span class="text-xl mr-3">🏢</span>
+                            <span>Info Cabang</span>
+                        </div>
+                        <span id="infoCabangIcon" class="transition-transform">▼</span>
+                    </button>
+                    <ul id="infoCabangDropdown" class="ml-6 mt-2 space-y-1 hidden">
+                        <?php foreach (get_cabang() as $c): ?>
+                        <li>
+                            <a href="<?= $root_path ?>modules/admin/info_cabang.php?cabang=<?= $c['id'] ?>"
+                               class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all">
+                                📍 <?= $c['nama_cabang'] ?>
+                            </a>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
                 </li>
+
+                <!-- Laporan Dropdown -->
                 <li>
-                    <a href="<?= $root_path ?>modules/admin/tambah_stok.php" 
+                    <button onclick="toggleDropdown('laporan')"
+                            class="w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
+                                   <?= str_contains($_SERVER['REQUEST_URI'], '/laporan') ? 'bg-blue-700 shadow-lg' : '' ?>">
+                        <div class="flex items-center">
+                            <span class="text-xl mr-3">📈</span>
+                            <span>Laporan</span>
+                        </div>
+                        <span id="laporanIcon" class="transition-transform">▼</span>
+                    </button>
+                    <ul id="laporanDropdown" class="ml-6 mt-2 space-y-1 hidden">
+                        <li>
+                            <a href="<?= $root_path ?>modules/admin/laporan_penjualan.php"
+                               class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
+                                      <?= basename($_SERVER['PHP_SELF']) == 'laporan_penjualan.php' ? 'bg-blue-700' : '' ?>">
+                                💰 Laporan Penjualan
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= $root_path ?>modules/admin/laporan_pembelian.php"
+                               class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
+                                      <?= basename($_SERVER['PHP_SELF']) == 'laporan_pembelian.php' ? 'bg-blue-700' : '' ?>">
+                                📦 Laporan Stok
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="<?= $root_path ?>modules/admin/tambah_stok.php"
                        class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
-                              <?= strpos($_SERVER['REQUEST_URI'], '/tambah_stok') !== false ? 'bg-blue-700 shadow-lg' : '' ?>">
-                        <span class="text-xl mr-3">➕</span> 
+                              <?= str_contains($_SERVER['REQUEST_URI'], '/tambah_stok') ? 'bg-blue-700 shadow-lg' : '' ?>">
+                        <span class="text-xl mr-3">➕</span>
                         <span>Tambah Produk</span>
                     </a>
                 </li>
@@ -98,15 +143,21 @@ $root_path = $root ?? '';
                 <?php endif; ?>
                 
                 <li class="pt-6 mt-6 border-t border-blue-700">
-                    <a href="<?= $root_path ?>logout.php" onclick="return confirm('Yakin ingin keluar?')"
+                    <a href="<?= $root_path ?>logout.php"
+                       onclick="event.preventDefault();
+                                if(typeof confirmLogout === 'function') {
+                                    confirmLogout().then(res => { if(res) window.location.href='<?= $root_path ?>logout.php'; });
+                                } else if(confirm('Yakin ingin keluar?')) {
+                                    window.location.href='<?= $root_path ?>logout.php';
+                                }"
                        class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-red-600 hover:shadow-lg text-red-200 hover:text-white">
-                        <span class="text-xl mr-3">🚪</span> 
+                        <span class="text-xl mr-3">🚪</span>
                         <span>Keluar</span>
                     </a>
                 </li>
             </ul>
         </nav>
-        
+
         <!-- Footer -->
         <div class="p-4 text-xs text-blue-200 border-t border-blue-700">
             <p>© 2024 Toko Botol</p>
@@ -116,3 +167,38 @@ $root_path = $root ?? '';
 
     <!-- MAIN CONTENT -->
     <div class="flex-1 overflow-auto transition-all duration-300">
+
+<script>
+// Dropdown Toggle Function
+function toggleDropdown(id) {
+    const dropdown = document.getElementById(id + 'Dropdown');
+    const icon = document.getElementById(id + 'Icon');
+
+    if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        dropdown.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+
+// Mobile Menu
+document.getElementById('menuBtn')?.addEventListener('click', function() {
+    document.getElementById('sidebar').classList.add('translate-x-0');
+    document.getElementById('sidebar').classList.remove('-translate-x-full');
+    document.getElementById('overlay').classList.remove('hidden');
+});
+
+document.getElementById('closeBtn')?.addEventListener('click', function() {
+    document.getElementById('sidebar').classList.remove('translate-x-0');
+    document.getElementById('sidebar').classList.add('-translate-x-full');
+    document.getElementById('overlay').classList.add('hidden');
+});
+
+document.getElementById('overlay')?.addEventListener('click', function() {
+    document.getElementById('sidebar').classList.remove('translate-x-0');
+    document.getElementById('sidebar').classList.add('-translate-x-full');
+    document.getElementById('overlay').classList.add('hidden');
+});
+</script>

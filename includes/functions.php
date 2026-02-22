@@ -3,23 +3,34 @@
 require_once 'database.php';
 
 // ============= FUNGSI GET PRODUK =============
-function get_produk() {
-    return query("SELECT * FROM produk ORDER BY id DESC");
+function get_produk($include_deleted = false): ?array
+{
+    if ($include_deleted) {
+        // Include deleted products (for admin restore feature, etc.)
+        return query("SELECT * FROM produk ORDER BY id DESC");
+    } else {
+        // Default: Only show active products
+        return query("SELECT * FROM produk WHERE status = 'active' ORDER BY id DESC");
+    }
 }
 
 function get_produk_by_id($id) {
     $result = query("SELECT * FROM produk WHERE id = $id");
     return count($result) > 0 ? $result[0] : null;
 }
-function rupiah($angka) {
+function rupiah($angka): string
+{
     return 'Rp ' . number_format($angka, 0, ',', '.');
 }
 
-function format_tanggal($tanggal) {
+/** @noinspection PhpUnused */
+function format_tanggal($tanggal): string
+{
     return date('d/m/Y H:i', strtotime($tanggal));
 }
 
-function get_cabang() {
+function get_cabang(): ?array
+{
     return query("SELECT * FROM cabang ORDER BY id");
 }
 
@@ -33,7 +44,8 @@ function get_stok_cabang($produk_id, $cabang_id) {
     return count($result) > 0 ? $result[0]['stok'] : 0;
 }
 
-function cek_selisih_stok() {
+function cek_selisih_stok(): array
+{
     // This function now checks for actual stock discrepancies based on recent stock opname
     // Only shows warning if physical count (stok_fisik) is less than system (HILANG status)
     $warning = [];
@@ -62,7 +74,120 @@ function cek_selisih_stok() {
     return $warning;
 }
 
-function generate_invoice() {
+function generate_invoice(): string
+{
     return 'INV-' . date('Ymd') . '-' . rand(1000, 9999);
 }
-?>
+
+// ============= FUNGSI TRANSAKSI HEADER-DETAIL =============
+/**
+ * Save transaction with header-detail structure
+ * @param array $header_data - Transaction header info
+ * @param array $items - Array of transaction items
+ * @return array ['success' => bool, 'invoice' => string, 'message' => string, 'header_id' => int]
+ * @noinspection PhpUnused
+ */
+function save_transaction(array $header_data, array $items): array
+{
+    global $conn;
+
+    try {
+        // Start transaction
+        $conn->begin_transaction();
+
+        // 1. Insert transaction header
+        $no_invoice = $header_data['no_invoice'];
+        $cabang_id = intval($header_data['cabang_id']);
+        $session_kasir_id = isset($header_data['session_kasir_id']) && $header_data['session_kasir_id'] ? intval($header_data['session_kasir_id']) : 'NULL';
+        $nama_kasir = escape_string($header_data['nama_kasir']);
+        $tipe = $header_data['tipe']; // 'pembeli' or 'penjual'
+        $total_items = count($items);
+        $total_harga = intval($header_data['total_harga']);
+        $total_bayar = isset($header_data['total_bayar']) ? intval($header_data['total_bayar']) : 'NULL';
+        $kembalian = isset($header_data['kembalian']) ? intval($header_data['kembalian']) : 'NULL';
+
+        $sql_header = "INSERT INTO transaksi_header (no_invoice, cabang_id, session_kasir_id, nama_kasir, tipe, total_items, total_harga, total_bayar, kembalian)
+                      VALUES ('$no_invoice', $cabang_id, $session_kasir_id, '$nama_kasir', '$tipe', $total_items, $total_harga, $total_bayar, $kembalian)";
+
+        if (!execute($sql_header)) {
+            throw new Exception('Failed to insert transaction header');
+        }
+
+        $header_id = last_insert_id();
+
+        // 2. Insert transaction details
+        foreach ($items as $item) {
+            $produk_id = intval($item['produk_id']);
+            $produk_data = get_produk_by_id($produk_id);
+            $nama_produk = escape_string($produk_data['nama_produk']);
+            $jumlah = intval($item['jumlah']);
+            $satuan = escape_string($item['satuan']);
+            $harga_satuan = intval($item['harga_satuan']);
+            $harga_tawar = isset($item['harga_tawar']) ? intval($item['harga_tawar']) : 'NULL';
+            $selisih = isset($item['selisih']) ? intval($item['selisih']) : 'NULL';
+            $subtotal = intval($item['subtotal']);
+
+            $sql_detail = "INSERT INTO transaksi_detail (transaksi_header_id, no_invoice, produk_id, nama_produk, jumlah, satuan, harga_satuan, harga_tawar, selisih, subtotal)
+                          VALUES ($header_id, '$no_invoice', $produk_id, '$nama_produk', $jumlah, '$satuan', $harga_satuan, $harga_tawar, $selisih, $subtotal)";
+
+            if (!execute($sql_detail)) {
+                throw new Exception('Failed to insert transaction detail for product: ' . $nama_produk);
+            }
+
+            // 3. Update stock cabang
+            $jumlah_botol = ($satuan === 'dus') ? ($jumlah * 12) : $jumlah;
+            $stok_cabang = get_stok_cabang($produk_id, $cabang_id);
+
+            if ($stok_cabang < $jumlah_botol) {
+                throw new Exception('Stok tidak mencukupi untuk produk: ' . $nama_produk);
+            }
+
+            $sql_update_stok = "UPDATE stok_cabang SET stok = stok - $jumlah_botol
+                               WHERE produk_id = $produk_id AND cabang_id = $cabang_id";
+
+            if (!execute($sql_update_stok)) {
+                throw new Exception('Failed to update stock for product: ' . $nama_produk);
+            }
+        }
+
+        // Commit transaction
+        $conn->commit();
+
+        return [
+            'success' => true,
+            'invoice' => $no_invoice,
+            'header_id' => $header_id,
+            'message' => "Transaksi berhasil! $total_items item diproses. Invoice: $no_invoice"
+        ];
+
+    } catch (Exception $e) {
+        // Rollback on error
+        $conn->rollback();
+
+        return [
+            'success' => false,
+            'invoice' => null,
+            'header_id' => null,
+            'message' => 'Error: ' . $e->getMessage()
+        ];
+    }
+}
+
+/**
+ * Get transaction by invoice number
+ */
+function get_transaction_by_invoice($no_invoice): ?array
+{
+    $header = query("SELECT * FROM transaksi_header WHERE no_invoice = '" . escape_string($no_invoice) . "'");
+    if (empty($header)) {
+        return null;
+    }
+
+    $header_data = $header[0];
+    $details = query("SELECT * FROM transaksi_detail WHERE no_invoice = '" . escape_string($no_invoice) . "' ORDER BY id");
+
+    return [
+        'header' => $header_data,
+        'details' => $details
+    ];
+}

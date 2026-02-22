@@ -15,6 +15,9 @@ $cabang_id = is_admin() ? ($_GET['cabang'] ?? 1) : $_SESSION['user']['cabang_id'
 $nama_cabang = query("SELECT nama_cabang FROM cabang WHERE id = $cabang_id")[0]['nama_cabang'];
 $produk = get_produk();
 
+// Include confirmation modal
+include '../../includes/modal_confirm.php';
+
 // Proses transaksi (multiple items)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_transaksi'])) {
     $cart_items = json_decode($_POST['cart_data'], true);
@@ -84,8 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_transaksi'])) 
 $rekap = query("
     SELECT
         COUNT(*) as total_transaksi,
-        SUM(CASE WHEN tipe = 'pembeli' THEN total_harga ELSE 0 END) as total_penjualan,
-        SUM(CASE WHEN tipe = 'penjual' THEN total_harga ELSE 0 END) as total_pembelian
+        SUM(IF(tipe = 'pembeli', total_harga, 0)) as total_penjualan,
+        SUM(IF(tipe = 'penjual', total_harga, 0)) as total_pembelian
     FROM transaksi
     WHERE cabang_id = $cabang_id AND DATE(created_at) = CURDATE()
 ")[0];
@@ -121,7 +124,7 @@ $rekap = query("
     <!-- Header -->
     <div class="bg-white rounded-lg shadow p-4 mb-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
         <div>
-            <h1 class="text-2xl lg:text-3xl font-bold text-gray-800">KASIR POS</h1>
+            <h1 class="judul text-2xl lg:text-3xl font-bold text-gray-800">KASIR POS</h1>
             <p class="text-sm text-gray-600 mt-1">
                 📍 <?= $nama_cabang ?> | 👤 <?= $_SESSION['user']['nama'] ?>
             </p>
@@ -257,6 +260,7 @@ $rekap = query("
     </div>
 </div>
 
+<!--suppress JSUnusedAssignment, JSValidateTypes -->
 <script>
 let cart = [];
 let transactionType = 'pembeli';

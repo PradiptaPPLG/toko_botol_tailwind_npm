@@ -29,7 +29,7 @@ $transaksi_terbaru = query("
 
 <!-- CONTENT DASHBOARD - TANPA DIV FLEX! LANGSUNG ISI -->
 <div class="p-4 sm:p-6 lg:p-8">
-    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 flex items-center">
+    <h1 class="judul text-2xl sm:text-3xl font-bold text-gray-800 mb-6 flex items-center">
         <span class="mr-2">📊</span> Dashboard Admin
     </h1>
     
