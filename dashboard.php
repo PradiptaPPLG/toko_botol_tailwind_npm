@@ -33,30 +33,6 @@ $transaksi_terbaru = query("
         <span class="mr-2">📊</span> Dashboard Admin
     </h1>
     
-    <!-- Warning Box -->
-    <?php if (!empty($cek_hilang)): ?>
-    <div class="bg-red-600 text-white p-4 sm:p-6 rounded-lg mb-6 sm:mb-8 shadow-lg border-2 border-red-800">
-        <div class="flex items-start sm:items-center flex-col sm:flex-row">
-            <span class="text-3xl sm:text-4xl mr-0 sm:mr-4 mb-2 sm:mb-0">⚠️</span>
-            <div>
-                <h2 class="text-xl sm:text-2xl font-bold">PERINGATAN! DITEMUKAN SELISIH STOK</h2>
-                <p class="text-base sm:text-lg">Berdasarkan Stock Opname 7 hari terakhir</p>
-            </div>
-        </div>
-        <div class="mt-4 bg-red-700 p-3 sm:p-4 rounded space-y-2">
-            <?php foreach ($cek_hilang as $w): ?>
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-red-500 py-2 text-sm sm:text-base">
-                <span class="font-bold"><?= $w['produk'] ?></span>
-                <span>Sistem: <?= $w['stok_sistem'] ?> | Fisik: <?= $w['stok_fisik'] ?> | <?= date('d/m/Y', strtotime($w['tanggal'])) ?></span>
-                <span class="bg-red-800 px-2 sm:px-3 py-1 rounded-full text-white font-bold text-sm sm:text-base mt-1 sm:mt-0">
-                    HILANG <?= $w['selisih'] ?> BOTOL
-                </span>
-            </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-    <?php endif; ?>
-    
     <!-- Statistik Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <!-- Total Produk -->
