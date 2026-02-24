@@ -24,8 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_transaksi'])) 
     $tipe = $_POST['tipe'];
 
     if (!empty($cart_items)) {
-        $invoice = generate_invoice();
-        $success_count = 0;
+        // Prepare transaction items for new structure
+        $transaction_items = [];
+        $total_transaction = 0;
         $errors = [];
 
         foreach ($cart_items as $item) {
@@ -52,44 +53,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_transaksi'])) 
                 $jumlah_botol = $jumlah;
             }
 
-            $total_harga = $harga_satuan * $jumlah;
+            $subtotal = $harga_satuan * $jumlah;
 
-            // Kurangi stok cabang
+            // Check stock availability
             $stok_cabang = get_stok_cabang($produk_id, $cabang_id);
-            if ($stok_cabang >= $jumlah_botol) {
-                execute("UPDATE stok_cabang SET stok = stok - $jumlah_botol WHERE produk_id = $produk_id AND cabang_id = $cabang_id");
-
-                // Simpan transaksi
-                $nama_kasir = $_SESSION['user']['nama'];
-                $session_id = is_admin() ? 'NULL' : $_SESSION['user']['id'];
-
-                $sql = "INSERT INTO transaksi (no_invoice, produk_id, cabang_id, session_kasir_id, nama_kasir, tipe, jumlah, satuan, harga_satuan, harga_tawar, selisih, total_harga)
-                        VALUES ('$invoice', $produk_id, $cabang_id, $session_id, '$nama_kasir', '$tipe', $jumlah, '$satuan', $harga_satuan, " . ($harga_tawar ?? 'NULL') . ", " . ($selisih ?? 'NULL') . ", $total_harga)";
-
-                if (execute($sql)) {
-                    $success_count++;
-                }
-            } else {
+            if ($stok_cabang < $jumlah_botol) {
                 $errors[] = $data_produk['nama_produk'] . " - Stok tidak mencukupi! Sisa: $stok_cabang botol";
+                continue;
             }
+
+            $transaction_items[] = [
+                'produk_id' => $produk_id,
+                'jumlah' => $jumlah,
+                'satuan' => $satuan,
+                'harga_satuan' => $harga_satuan,
+                'harga_tawar' => $harga_tawar,
+                'selisih' => $selisih,
+                'subtotal' => $subtotal
+            ];
+
+            $total_transaction += $subtotal;
         }
 
-        if ($success_count > 0) {
-            $success = "Transaksi berhasil! $success_count item diproses. Invoice: $invoice";
-        }
-        if (!empty($errors)) {
+        // If no errors, save transaction using new structure
+        if (empty($errors) && !empty($transaction_items)) {
+            $nama_kasir = $_SESSION['user']['nama'];
+            $session_id = is_admin() ? null : $_SESSION['user']['id'];
+            $invoice = generate_invoice();
+
+            $header_data = [
+                'no_invoice' => $invoice,
+                'cabang_id' => $cabang_id,
+                'session_kasir_id' => $session_id,
+                'nama_kasir' => $nama_kasir,
+                'tipe' => $tipe,
+                'total_harga' => $total_transaction
+            ];
+
+            $result = save_transaction($header_data, $transaction_items);
+
+            if ($result['success']) {
+                $success = $result['message'];
+            } else {
+                $error = $result['message'];
+            }
+        } elseif (!empty($errors)) {
             $error = implode('<br>', $errors);
         }
     }
 }
 
-// Rekap hari ini
+// Rekap hari ini - using new structure
 $rekap = query("
     SELECT
         COUNT(*) as total_transaksi,
         SUM(IF(tipe = 'pembeli', total_harga, 0)) as total_penjualan,
         SUM(IF(tipe = 'penjual', total_harga, 0)) as total_pembelian
-    FROM transaksi
+    FROM transaksi_header
     WHERE cabang_id = $cabang_id AND DATE(created_at) = CURDATE()
 ")[0];
 ?>

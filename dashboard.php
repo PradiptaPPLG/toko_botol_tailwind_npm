@@ -11,18 +11,17 @@ include 'includes/layout_sidebar.php';
 
 // Data untuk dashboard
 $total_produk = query("SELECT COUNT(*) as total FROM produk")[0]['total'] ?? 0;
-$total_transaksi_hari_ini = query("SELECT COUNT(*) as total, SUM(total_harga) as nominal FROM transaksi WHERE DATE(created_at) = CURDATE()")[0] ?? ['total' => 0, 'nominal' => 0];
+$total_transaksi_hari_ini = query("SELECT COUNT(*) as total, SUM(total_harga) as nominal FROM transaksi_header WHERE DATE(created_at) = CURDATE()")[0] ?? ['total' => 0, 'nominal' => 0];
 $total_pengeluaran_hari_ini = query("SELECT SUM(nominal) as total FROM pengeluaran WHERE DATE(created_at) = CURDATE()")[0]['total'] ?? 0;
 $total_stok_gudang = query("SELECT SUM(stok_gudang) as total FROM produk")[0]['total'] ?? 0;
 $cek_hilang = cek_selisih_stok();
 
-// Transaksi terbaru
+// Transaksi terbaru - using new structure
 $transaksi_terbaru = query("
-    SELECT t.*, p.nama_produk, c.nama_cabang 
-    FROM transaksi t 
-    JOIN produk p ON t.produk_id = p.id 
-    JOIN cabang c ON t.cabang_id = c.id 
-    ORDER BY t.created_at DESC 
+    SELECT th.*, c.nama_cabang
+    FROM transaksi_header th
+    JOIN cabang c ON th.cabang_id = c.id
+    ORDER BY th.created_at DESC
     LIMIT 10
 ");
 ?>
@@ -32,30 +31,6 @@ $transaksi_terbaru = query("
     <h1 class="judul text-2xl sm:text-3xl font-bold text-gray-800 mb-6 flex items-center">
         <span class="mr-2">📊</span> Dashboard Admin
     </h1>
-    
-    <!-- Warning Box -->
-    <?php if (!empty($cek_hilang)): ?>
-    <div class="bg-red-600 text-white p-4 sm:p-6 rounded-lg mb-6 sm:mb-8 shadow-lg border-2 border-red-800">
-        <div class="flex items-start sm:items-center flex-col sm:flex-row">
-            <span class="text-3xl sm:text-4xl mr-0 sm:mr-4 mb-2 sm:mb-0">⚠️</span>
-            <div>
-                <h2 class="text-xl sm:text-2xl font-bold">PERINGATAN! DITEMUKAN SELISIH STOK</h2>
-                <p class="text-base sm:text-lg">Berdasarkan Stock Opname 7 hari terakhir</p>
-            </div>
-        </div>
-        <div class="mt-4 bg-red-700 p-3 sm:p-4 rounded space-y-2">
-            <?php foreach ($cek_hilang as $w): ?>
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-red-500 py-2 text-sm sm:text-base">
-                <span class="font-bold"><?= $w['produk'] ?></span>
-                <span>Sistem: <?= $w['stok_sistem'] ?> | Fisik: <?= $w['stok_fisik'] ?> | <?= date('d/m/Y', strtotime($w['tanggal'])) ?></span>
-                <span class="bg-red-800 px-2 sm:px-3 py-1 rounded-full text-white font-bold text-sm sm:text-base mt-1 sm:mt-0">
-                    HILANG <?= $w['selisih'] ?> BOTOL
-                </span>
-            </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-    <?php endif; ?>
     
     <!-- Statistik Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
@@ -151,7 +126,8 @@ $transaksi_terbaru = query("
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-4 sm:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase">Waktu</th>
-                                <th class="px-4 sm:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase">Produk</th>
+                                <th class="px-4 sm:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase">Invoice</th>
+                                <th class="px-4 sm:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase">Cabang</th>
                                 <th class="px-4 sm:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase">Kasir</th>
                                 <th class="px-4 sm:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase">Total</th>
                             </tr>
@@ -161,14 +137,15 @@ $transaksi_terbaru = query("
                                 <?php foreach ($transaksi_terbaru as $t): ?>
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm text-gray-900"><?= date('H:i', strtotime($t['created_at'])) ?></td>
-                                    <td class="px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm text-gray-900"><?= $t['nama_produk'] ?></td>
+                                    <td class="px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 font-mono"><?= $t['no_invoice'] ?></td>
+                                    <td class="px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm text-gray-900"><?= $t['nama_cabang'] ?></td>
                                     <td class="px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm text-gray-900"><?= $t['nama_kasir'] ?></td>
                                     <td class="px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-bold text-gray-900"><?= rupiah($t['total_harga']) ?></td>
                                 </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="4" class="px-4 sm:px-6 py-8 text-center text-sm sm:text-base text-gray-500">
+                                    <td colspan="5" class="px-4 sm:px-6 py-8 text-center text-sm sm:text-base text-gray-500">
                                         Belum ada transaksi
                                     </td>
                                 </tr>

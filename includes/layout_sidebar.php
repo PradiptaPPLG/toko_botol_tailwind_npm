@@ -19,18 +19,18 @@ $root_path = $root ?? '';
 
 <!-- FLEX CONTAINER UTAMA -->
 <div class="flex h-screen bg-gray-100">
-    
+
     <!-- SIDEBAR -->
-    <div id="sidebar" 
+    <div id="sidebar"
          class="fixed lg:relative top-0 left-0 h-full w-64 bg-gradient-to-b from-blue-900 to-blue-800 text-white flex flex-col shadow-2xl z-50
                 transition-all duration-300 ease-in-out
                 -translate-x-full lg:translate-x-0">
-        
+
         <!-- Header -->
         <div class="p-6 border-b border-blue-700">
             <div class="flex items-center justify-between">
                 <p class="text-2x1 font-bold flex items-center">
-                    <span class="mr-2">🛒</span> 
+                    <span class="mr-2">🛒</span>
                     <span>Toko PDK</span>
                 </p>
                 <button id="closeBtn" class="lg:hidden text-white hover:text-blue-200 text-2xl">
@@ -42,27 +42,61 @@ $root_path = $root ?? '';
                 (<?= $is_admin ? 'Admin' : 'Kasir' ?>)
             </p>
         </div>
-        
+
         <!-- Navigation -->
         <nav class="flex-1 p-4 overflow-y-auto">
             <ul class="space-y-2">
                 <?php if ($is_admin): ?>
                 <li>
-                    <a href="<?= $root_path ?>dashboard.php" 
+                    <a href="<?= $root_path ?>dashboard.php"
                        class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
                               <?= basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'bg-blue-700 shadow-lg' : '' ?>">
-                        <span class="text-xl mr-3">📊</span> 
+                        <span class="text-xl mr-3">📊</span>
                         <span>Dashboard</span>
                     </a>
                 </li>
-                <li>
-                    <a href="<?= $root_path ?>modules/gudang/index.php" 
-                       class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
-                              <?= str_contains($_SERVER['REQUEST_URI'], '/gudang/') ? 'bg-blue-700 shadow-lg' : '' ?>">
-                        <span class="text-xl mr-3">🏚️</span> 
-                        <span>Gudang</span>
-                    </a>
-                </li>
+                    <!-- Gudang Dropdown -->
+                    <li>
+                        <button onclick="toggleDropdown('gudang')"
+                                class="w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
+                   <?= str_contains($_SERVER['REQUEST_URI'], '/gudang/') ? 'bg-blue-700 shadow-lg' : '' ?>">
+                            <div class="flex items-center">
+                                <span class="text-xl mr-3">🏚️</span>
+                                <span>Gudang</span>
+                            </div>
+                            <span id="gudangIcon" class="transition-transform">▼</span>
+                        </button>
+                        <ul id="gudangDropdown" class="ml-6 mt-2 space-y-1 hidden">
+                            <li>
+                                <a href="<?= $root_path ?>modules/gudang/stok_masuk.php"
+                                   class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
+                      <?= basename($_SERVER['PHP_SELF']) == 'stok_masuk.php' ? 'bg-blue-700' : '' ?>">
+                                    📥 Stok Masuk
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= $root_path ?>modules/gudang/stok_keluar.php"
+                                   class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
+                      <?= basename($_SERVER['PHP_SELF']) == 'stok_keluar.php' ? 'bg-blue-700' : '' ?>">
+                                    📤 Stok Keluar
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= $root_path ?>modules/gudang/stok_opname.php"
+                                   class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
+                      <?= basename($_SERVER['PHP_SELF']) == 'stok_opname.php' ? 'bg-blue-700' : '' ?>">
+                                    📋 Stok Opname
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?= $root_path ?>modules/gudang/pengeluaran.php"
+                                   class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
+                      <?= basename($_SERVER['PHP_SELF']) == 'pengeluaran.php' ? 'bg-blue-700' : '' ?>">
+                                    💸 Pengeluaran
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 <li>
                     <a href="<?= $root_path ?>modules/kasir/index.php"
                        class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
@@ -134,14 +168,14 @@ $root_path = $root ?? '';
                 </li>
                 <?php else: ?>
                 <li>
-                    <a href="<?= $root_path ?>modules/kasir/index.php" 
+                    <a href="<?= $root_path ?>modules/kasir/index.php"
                        class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg bg-blue-700 shadow-lg">
-                        <span class="text-xl mr-3">🛒</span> 
+                        <span class="text-xl mr-3">🛒</span>
                         <span>Transaksi</span>
                     </a>
                 </li>
                 <?php endif; ?>
-                
+
                 <li class="pt-6 mt-6 border-t border-blue-700">
                     <a href="<?= $root_path ?>logout.php"
                        onclick="event.preventDefault();
@@ -201,4 +235,14 @@ document.getElementById('overlay')?.addEventListener('click', function() {
     document.getElementById('sidebar').classList.add('-translate-x-full');
     document.getElementById('overlay').classList.add('hidden');
 });
+
+// Buka dropdown Gudang jika halaman gudang dengan parameter op
+if (window.location.pathname.includes('/gudang/') && new URLSearchParams(window.location.search).has('op')) {
+    const dropdown = document.getElementById('gudangDropdown');
+    const icon = document.getElementById('gudangIcon');
+    if (dropdown && dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+    }
+}
 </script>
