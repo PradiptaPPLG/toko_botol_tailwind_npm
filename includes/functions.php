@@ -53,7 +53,7 @@ function cek_selisih_stok(): array
         JOIN produk p ON so.produk_id = p.id
         WHERE so.status = 'HILANG'
         AND so.tanggal >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-        AND so.is_hidden = 0
+        AND so.is_cancelled = 0
         ORDER BY so.tanggal DESC
     ");
 

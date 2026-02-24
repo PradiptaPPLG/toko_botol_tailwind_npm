@@ -1,28 +1,21 @@
 # Sistem Toko Botol
-Aplikasi POS menggunakan PHP native
-> **Note:** Aplikasi ini masih dalam tahap pengembangan.
 
-## Daftar Isi:
-- [Requirement](#requirement)
-- [Instalasi](#instalasi)
-  - [Instalasi Cepat](#instalasi-cepat)
-    - [Development](#development)
-    - [Production/Testing](#productiontesting)
-## Requirement
-- PHP v7.0
-- MySQL
-- TailwindCSS v3
-## Instalasi
-Untuk instalasi pastikan sudah menginstall semua requirement
-dan ikuti intruksi dibawah ini:
-### Instalasi Cepat
+Aplikasi POS (Point of Sale) untuk toko botol dengan manajemen stok multi-cabang, dibuat menggunakan PHP native.
+
+> **Catatan:** Aplikasi ini masih dalam tahap pengembangan.
+
+## Instalasi Cepat
+
 #### Development
-Jalankan command berikut:
+
 ```bash
 npm run setup:watch
 ```
-#### Production/Testing
-Jalankan command berikut:
+
+#### Production / Testing
+
 ```bash
 npm run setup:build
 ```
+
+📖 **[Dokumentasi Lengkap →](docs/README.md)**

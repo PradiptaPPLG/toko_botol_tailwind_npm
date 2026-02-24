@@ -497,7 +497,7 @@ $cek_hilang = cek_selisih_stok();
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <h3 class="font-bold text-lg mb-3">📊 Riwayat Stock Opname</h3>
                         <?php
-                        $so_history = query("SELECT so.*, p.nama_produk FROM stock_opname so JOIN produk p ON so.produk_id = p.id WHERE so.is_hidden = 0 ORDER BY so.created_at DESC LIMIT 10");
+                        $so_history = query("SELECT so.*, p.nama_produk FROM stock_opname so JOIN produk p ON so.produk_id = p.id WHERE so.is_cancelled = 0 ORDER BY so.created_at DESC LIMIT 10");
                         ?>
                         <?php if (count($so_history) > 0): ?>
                             <div class="space-y-2 max-h-80 overflow-y-auto">
