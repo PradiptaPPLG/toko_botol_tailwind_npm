@@ -107,7 +107,7 @@ class Schema
         return $this;
     }
 
-    /** Tiny integer (for boolean-like flags, e.g. is_cancelled) */
+    /** Tiny integer (for boolean-like flags, e.g., is_cancelled) */
     public function tinyint(): self
     {
         // Replace the last column definition with TINYINT(1) variant

@@ -111,16 +111,16 @@ if ($use_new_structure) {
                     <td class="py-2">
                         <div class="font-semibold"><?= $item['nama_produk'] ?></div>
                         <?php if (isset($item['harga_tawar']) && $item['harga_tawar']): ?>
-                        <div class="text-xs text-gray-600">
+                        <div class="text-xs text-gray-600 no-print">
                             Harga Tawar: <?= rupiah($item['harga_tawar']) ?>
                             <?php if (isset($item['selisih'])): ?>
-                            <span class="text-red-600">(Selisih: <?= rupiah($item['selisih']) ?>)</span>
+                            <span class="text-red-600 no-print">(Selisih: <?= rupiah($item['selisih']) ?>)</span>
                             <?php endif; ?>
                         </div>
                         <?php endif; ?>
                     </td>
                     <td class="py-2 text-center">
-                        <?= $item['jumlah'] ?> <?= $item['satuan'] ?>
+                        <?= number_format($item['jumlah'], 0, ',', '.') ?> <?= $item['satuan'] ?>
                     </td>
                     <td class="py-2 text-right">
                         <?= rupiah($item['harga_satuan']) ?>
