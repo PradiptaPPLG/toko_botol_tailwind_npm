@@ -53,9 +53,6 @@ Kedua perintah di atas secara otomatis akan:
 | ------------------------ | ------------------------------------------ |
 | `npm run build`          | Kompilasi & minifikasi CSS Tailwind        |
 | `npm run watch`          | Auto-kompilasi CSS saat file berubah       |
-| `npm run migrate`        | Jalankan migrasi yang belum dieksekusi     |
-| `npm run migrate:fresh`  | Hapus semua tabel & jalankan ulang migrasi |
-| `npm run migrate:status` | Lihat status semua migrasi                 |
 
 ---
 

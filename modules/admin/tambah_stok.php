@@ -61,7 +61,7 @@ if (isset($_GET['delete'])) {
         $sql = "UPDATE produk SET status = 'deleted', deleted_at = NOW() WHERE id = $id";
 
         if (execute($sql)) {
-            $success = "Produk '$produk_nama' berhasil dihapus (soft delete)!";
+            $success = "Produk '$produk_nama' berhasil dinonaktifkan!";
         } else {
             $error = "Gagal menghapus produk!";
         }
