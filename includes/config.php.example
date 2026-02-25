@@ -14,5 +14,4 @@ if ($conn->connect_error) {
 }
 
 $root = '/toko_botol_tailwind_npm/';
-$base_url = 'http://localhost'.$root;
-?>
+$base_url = 'http://localhost' . $root;
