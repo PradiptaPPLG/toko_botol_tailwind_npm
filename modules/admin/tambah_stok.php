@@ -12,12 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $kode_produk = 'BTL' . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
         $nama_produk = escape_string($_POST['nama_produk']);
         $satuan = 'botol';
-        $harga_jual = intval($_POST['harga_jual']);
-        $harga_dus = intval($_POST['harga_dus']);
         $stok_gudang = 0; // Always 0 for new products
-
-        $sql = "INSERT INTO produk (kode_produk, nama_produk, satuan, harga_beli, harga_jual, harga_dus, stok_gudang)
-                VALUES ('$kode_produk', '$nama_produk', '$satuan', 0, $harga_jual, $harga_dus, $stok_gudang)";
+ 
+         $sql = "INSERT INTO produk (kode_produk, nama_produk, satuan, harga_beli, harga_jual, harga_dus, stok_gudang)
+                 VALUES ('$kode_produk', '$nama_produk', '$satuan', 0, 0, 0, $stok_gudang)";
 
         if (execute($sql)) {
             $produk_id = last_insert_id();
@@ -36,10 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['edit_produk'])) {
         $id = intval($_POST['id']);
         $nama_produk = escape_string($_POST['nama_produk']);
-        $harga_jual = intval($_POST['harga_jual']);
-        $harga_dus = intval($_POST['harga_dus']);
 
-        $sql = "UPDATE produk SET nama_produk='$nama_produk', harga_jual=$harga_jual, harga_dus=$harga_dus WHERE id=$id";
+        $sql = "UPDATE produk SET nama_produk='$nama_produk' WHERE id=$id";
 
         if (execute($sql)) {
             $success = "Produk berhasil diupdate!";
@@ -114,25 +110,9 @@ include '../../includes/modal_confirm.php';
                     </label>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-gray-700 font-bold mb-2 text-lg">💵 Harga Jual</label>
-                        <label>
-                            <input type="number" name="harga_jual" required class="w-full border-2 border-gray-300 rounded-lg p-4 text-lg" placeholder="Rp">
-                        </label>
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 font-bold mb-2 text-lg">📦 Harga Per Dus</label>
-                        <label>
-                            <input type="number" name="harga_dus" required class="w-full border-2 border-gray-300 rounded-lg p-4 text-lg" placeholder="Rp (contoh: 72000)">
-                        </label>
-                        <p class="text-sm text-gray-500 mt-1">* 1 dus = 12 botol</p>
-                    </div>
-                </div>
-
-                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 text-sm text-yellow-800 rounded">
-                    💡 Harga beli diisi saat mencatat <strong>Stok Masuk</strong> di menu Gudang.
-                </div>
+<div class="space-y-4">
+    💡 Harga beli diisi saat mencatat <strong>Stok Masuk</strong> di menu Gudang. Harga jual ditentukan saat transaksi.
+</div>
 
                 <button type="submit" name="tambah_produk" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-lg text-xl mt-4">
                     ✅ TAMBAH PRODUK
@@ -164,14 +144,12 @@ include '../../includes/modal_confirm.php';
                             <div class="flex-1">
                                 <p class="font-bold text-lg text-gray-800"><?= $p['nama_produk'] ?></p>
                                 <p class="text-xs text-gray-500 font-mono">CODE: <?= $p['kode_produk'] ?></p>
-                                <div class="grid grid-cols-3 gap-2 mt-3">
-                                    <div class="text-[10px] uppercase font-bold text-gray-400">Jual: <span class="text-gray-700 text-sm block"><?= rupiah($p['harga_jual']) ?></span></div>
-                                    <div class="text-[10px] uppercase font-bold text-gray-400">Dus: <span class="text-gray-700 text-sm block"><?= rupiah($p['harga_dus']) ?></span></div>
-                                    <div class="text-[10px] uppercase font-bold text-gray-400">Stok: <span class="text-blue-600 text-sm block font-black"><?= number_format($p['stok_gudang'] ?? 0, 0, ',', '.') ?></span></div>
+                                <div class="grid grid-cols-2 gap-2 mt-3">
+                                    <div class="text-[10px] uppercase font-bold text-gray-400">Stok Gudang: <span class="text-blue-600 text-sm block font-black"><?= number_format($p['stok_gudang'] ?? 0, 0, ',', '.') ?></span></div>
                                 </div>
                             </div>
                             <div class="flex flex-col gap-2 ml-4">
-                                <button onclick="editProduct(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>', <?= $p['harga_jual'] ?>, <?= $p['harga_dus'] ?>)"
+                                <button onclick="editProduct(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>')"
                                         class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm transition-all">
                                     ✏️ Edit
                                 </button>
@@ -225,19 +203,8 @@ include '../../includes/modal_confirm.php';
                 <label for="edit_nama"></label><input type="text" name="nama_produk" id="edit_nama" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg">
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-gray-700 font-bold mb-2">💵 Harga Jual</label>
-                    <label for="edit_jual"></label><input type="number" name="harga_jual" id="edit_jual" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg">
-                </div>
-                <div>
-                    <label class="block text-gray-700 font-bold mb-2">📦 Harga Dus</label>
-                    <label for="edit_dus"></label><input type="number" name="harga_dus" id="edit_dus" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg">
-                </div>
-            </div>
-
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 text-sm text-yellow-800 rounded mb-4">
-                💡 Harga beli diisi saat mencatat <strong>Stok Masuk</strong>.
+                💡 Harga jual ditentukan secara manual saat melakukan transaksi.
             </div>
 
             <div class="flex gap-3">
@@ -292,11 +259,9 @@ function switchTab(tab) {
     }
 }
 
-function editProduct(id, nama, hargaJual, hargaDus) {
+function editProduct(id, nama) {
     document.getElementById('edit_id').value = id;
     document.getElementById('edit_nama').value = nama;
-    document.getElementById('edit_jual').value = hargaJual;
-    document.getElementById('edit_dus').value = hargaDus;
     document.getElementById('editModal').classList.remove('hidden');
 }
 

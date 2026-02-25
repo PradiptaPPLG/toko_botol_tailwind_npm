@@ -15,8 +15,7 @@ $tanggal_akhir = $_GET['tanggal_akhir'] ?? date('Y-m-d');
 $penjualan = query("
     SELECT SUM(total_harga) as total 
     FROM transaksi_header 
-    WHERE tipe = 'pembeli' 
-      AND DATE(created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'
+    WHERE DATE(created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'
 ")[0]['total'] ?? 0;
 
 // 2. Hitung Belanja Stok (Stok Masuk)
@@ -40,7 +39,7 @@ $kerugian_detail = query("
             'HILANG (SO)' as tipe,
             p.nama_produk,
             so.selisih as jumlah,
-            (so.selisih * p.harga_jual) as nominal,
+            0 as nominal,
             so.tanggal as tgl
         FROM stock_opname so
         JOIN produk p ON so.produk_id = p.id
@@ -53,7 +52,7 @@ $kerugian_detail = query("
             'RUSAK' as tipe,
             p.nama_produk,
             sk.jumlah,
-            (sk.jumlah * p.harga_jual) as nominal,
+            0 as nominal,
             sk.created_at as tgl
         FROM stok_keluar sk
         JOIN produk p ON sk.produk_id = p.id
