@@ -117,7 +117,7 @@ include '../../includes/modal_confirm.php';
                                     <span class="text-3xl">🥤</span>
                                 </div>
                                 <h3 class="font-bold text-sm mb-1 truncate"><?= $p['nama_produk'] ?></h3>
-                                <p class="text-xs <?= $p['stok_gudang'] > 0 ? 'text-green-600' : 'text-red-600' ?>">Stok: <?= $p['stok_gudang'] ?> btl</p>
+                                <p class="text-xs <?= $p['stok_gudang'] > 0 ? 'text-green-600' : 'text-red-600' ?>">Stok: <?= number_format($p['stok_gudang'], 0, ',', '.') ?> btl</p>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -212,6 +212,10 @@ include '../../includes/modal_confirm.php';
             renderCartKeluar();
         }
 
+        function numFormat(n) {
+            return parseInt(n || 0).toLocaleString('id-ID');
+        }
+
         function renderCartKeluar() {
             let container = document.getElementById('cart-keluar-items');
             let countSpan = document.getElementById('cart-keluar-count');
@@ -231,7 +235,7 @@ include '../../includes/modal_confirm.php';
             </div>
             <div class="flex items-center gap-2">
                 <button onclick="updateQtyKeluar(${idx}, -1)" class="qty-btn bg-gray-300 w-7 h-7 rounded">−</button>
-                <span class="font-bold w-12 text-center">${item.jumlah}</span>
+                <span class="font-bold w-12 text-center">${numFormat(item.jumlah)}</span>
                 <button onclick="updateQtyKeluar(${idx}, 1)" class="qty-btn bg-yellow-600 text-white w-7 h-7 rounded">+</button>
                 <span class="text-xs ml-auto">botol</span>
             </div>

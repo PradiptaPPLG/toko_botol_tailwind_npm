@@ -18,7 +18,7 @@ function get_produk_by_id($id) {
 
 function rupiah($angka): string
 {
-    return 'Rp ' . number_format($angka, 0, ',', '.');
+    return 'Rp ' . number_format($angka, 2, ',', '.');
 }
 
 function format_tanggal($tanggal): string
@@ -91,9 +91,9 @@ function save_transaction(array $header_data, array $items): array
         $nama_kasir = escape_string($header_data['nama_kasir']);
         $tipe = $header_data['tipe'];
         $total_items = count($items);
-        $total_harga = intval($header_data['total_harga']);
-        $total_bayar = isset($header_data['total_bayar']) ? intval($header_data['total_bayar']) : 'NULL';
-        $kembalian = isset($header_data['kembalian']) ? intval($header_data['kembalian']) : 'NULL';
+        $total_harga = (float)($header_data['total_harga'] ?? 0);
+        $total_bayar = isset($header_data['total_bayar']) ? (float)$header_data['total_bayar'] : 'NULL';
+        $kembalian = isset($header_data['kembalian']) ? (float)$header_data['kembalian'] : 'NULL';
 
         $sql_header = "INSERT INTO transaksi_header (no_invoice, cabang_id, session_kasir_id, nama_kasir, tipe, total_items, total_harga, total_bayar, kembalian)
                       VALUES ('$no_invoice', $cabang_id, $session_kasir_id, '$nama_kasir', '$tipe', $total_items, $total_harga, $total_bayar, $kembalian)";
@@ -110,10 +110,10 @@ function save_transaction(array $header_data, array $items): array
             $nama_produk = escape_string($produk_data['nama_produk']);
             $jumlah = intval($item['jumlah']);
             $satuan = escape_string($item['satuan']);
-            $harga_satuan = intval($item['harga_satuan']);
-            $harga_tawar = isset($item['harga_tawar']) ? intval($item['harga_tawar']) : 'NULL';
-            $selisih = isset($item['selisih']) ? intval($item['selisih']) : 'NULL';
-            $subtotal = intval($item['subtotal']);
+            $harga_satuan = (float)$item['harga_satuan'];
+            $harga_tawar = isset($item['harga_tawar']) ? (float)$item['harga_tawar'] : 'NULL';
+            $selisih = isset($item['selisih']) ? (float)$item['selisih'] : 'NULL';
+            $subtotal = (float)$item['subtotal'];
 
             $sql_detail = "INSERT INTO transaksi_detail (transaksi_header_id, no_invoice, produk_id, nama_produk, jumlah, satuan, harga_satuan, harga_tawar, selisih, subtotal)
                           VALUES ($header_id, '$no_invoice', $produk_id, '$nama_produk', $jumlah, '$satuan', $harga_satuan, $harga_tawar, $selisih, $subtotal)";

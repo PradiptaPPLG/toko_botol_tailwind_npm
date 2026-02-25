@@ -97,13 +97,33 @@ $root_path = $root ?? '';
                             </li>
                         </ul>
                     </li>
+                <!-- Transaksi Dropdown -->
                 <li>
-                    <a href="<?= $root_path ?>modules/kasir/index.php"
-                       class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
-                              <?= str_contains($_SERVER['REQUEST_URI'], '/kasir/') ? 'bg-blue-700 shadow-lg' : '' ?>">
-                        <span class="text-xl mr-3">🛒</span>
-                        <span>Transaksi</span>
-                    </a>
+                    <button onclick="toggleDropdown('transaksi')"
+                            class="w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
+                                   <?= str_contains($_SERVER['REQUEST_URI'], '/kasir/') ? 'bg-blue-700 shadow-lg' : '' ?>">
+                        <div class="flex items-center">
+                            <span class="text-xl mr-3">🛒</span>
+                            <span>Transaksi</span>
+                        </div>
+                        <span id="transaksiIcon" class="transition-transform">▼</span>
+                    </button>
+                    <ul id="transaksiDropdown" class="ml-6 mt-2 space-y-1 hidden">
+                        <li>
+                            <a href="<?= $root_path ?>modules/kasir/pembeli.php"
+                               class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
+                                      <?= (basename($_SERVER['PHP_SELF']) == 'pembeli.php') ? 'bg-blue-700' : '' ?>">
+                                🛒 Transaksi Pembeli
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= $root_path ?>modules/kasir/penjual.php"
+                               class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
+                                      <?= (basename($_SERVER['PHP_SELF']) == 'penjual.php') ? 'bg-blue-700' : '' ?>">
+                                🤝 Transaksi Penjual
+                            </a>
+                        </li>
+                    </ul>
                 </li>
 
                 <!-- Info Cabang Dropdown -->
@@ -155,23 +175,22 @@ $root_path = $root ?? '';
                                 📦 Laporan Stok
                             </a>
                         </li>
+                        <li>
+                            <a href="<?= $root_path ?>modules/admin/rekap.php"
+                               class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
+                                      <?= basename($_SERVER['PHP_SELF']) == 'rekap.php' ? 'bg-blue-700' : '' ?>">
+                                📊 Rekap Keuntungan
+                            </a>
+                        </li>
                     </ul>
                 </li>
 
                 <li>
                     <a href="<?= $root_path ?>modules/admin/tambah_stok.php"
                        class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
-                              <?= str_contains($_SERVER['REQUEST_URI'], '/tambah_stok') ? 'bg-blue-700 shadow-lg' : '' ?>">
+                               <?= str_contains($_SERVER['REQUEST_URI'], '/tambah_stok') ? 'bg-blue-700 shadow-lg' : '' ?>">
                         <span class="text-xl mr-3">➕</span>
                         <span>Tambah Produk</span>
-                    </a>
-                </li>
-                <?php else: ?>
-                <li>
-                    <a href="<?= $root_path ?>modules/kasir/index.php"
-                       class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg bg-blue-700 shadow-lg">
-                        <span class="text-xl mr-3">🛒</span>
-                        <span>Transaksi</span>
                     </a>
                 </li>
                 <?php endif; ?>
@@ -236,13 +255,16 @@ document.getElementById('overlay')?.addEventListener('click', function() {
     document.getElementById('overlay').classList.add('hidden');
 });
 
-// Buka dropdown Gudang jika halaman gudang dengan parameter op
-if (window.location.pathname.includes('/gudang/') && new URLSearchParams(window.location.search).has('op')) {
-    const dropdown = document.getElementById('gudangDropdown');
-    const icon = document.getElementById('gudangIcon');
-    if (dropdown && dropdown.classList.contains('hidden')) {
+// Buka dropdown jika halaman aktif
+['gudang', 'transaksi', 'infoCabang', 'laporan'].forEach(id => {
+    const dropdown = document.getElementById(id + 'Dropdown');
+    const icon = document.getElementById(id + 'Icon');
+    const isKasirMatch = (id === 'transaksi' && window.location.pathname.includes('/kasir/'));
+    const isOtherMatch = window.location.pathname.includes('/' + id.toLowerCase() + '/');
+    
+    if (dropdown && (isKasirMatch || isOtherMatch)) {
         dropdown.classList.remove('hidden');
-        icon.style.transform = 'rotate(180deg)';
+        if (icon) icon.style.transform = 'rotate(180deg)';
     }
-}
+});
 </script>

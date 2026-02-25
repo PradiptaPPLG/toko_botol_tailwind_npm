@@ -115,7 +115,7 @@ if (isset($_POST['stock_opname'])) {
 
     execute("INSERT INTO stock_opname (produk_id, stok_sistem, stok_fisik, selisih, status, petugas, tanggal, is_hidden)
              VALUES ($produk_id, $stok_sistem, $stok_fisik, $selisih, '$status', '$petugas', '$tanggal', 0)");
-    $success_so = "✅ Stock Opname selesai! Selisih: $selisih botol ($status)";
+    $success_so = "✅ Stock Opname selesai! Selisih: " . number_format($selisih, 0, ',', '.') . " botol ($status)";
 }
 
 // Pengeluaran
@@ -240,10 +240,10 @@ $cek_hilang = cek_selisih_stok();
                             <span class="text-xs lg:text-sm"><?= date('d/m/Y', strtotime($w['tanggal'])) ?></span>
                         </div>
                         <div class="flex justify-between items-center flex-wrap gap-2">
-                            <span>Stok Sistem: <?= $w['stok_sistem'] ?> botol</span>
-                            <span>Stok Fisik: <?= $w['stok_fisik'] ?> botol</span>
+                            <span>Stok Sistem: <?= number_format($w['stok_sistem'], 0, ',', '.') ?> botol</span>
+                            <span>Stok Fisik: <?= number_format($w['stok_fisik'], 0, ',', '.') ?> botol</span>
                             <span class="bg-red-800 px-3 lg:px-4 py-1 lg:py-2 rounded-full text-white font-bold text-sm lg:text-base">
-                            HILANG <?= $w['selisih'] ?> BOTOL
+                            HILANG <?= number_format($w['selisih'], 0, ',', '.') ?> BOTOL
                         </span>
                         </div>
                     </div>
@@ -314,7 +314,7 @@ $cek_hilang = cek_selisih_stok();
                                         <span class="text-3xl">🥤</span>
                                     </div>
                                     <h3 class="font-bold text-sm mb-1 truncate"><?= $p['nama_produk'] ?></h3>
-                                    <p class="text-xs text-gray-600">Stok Gudang: <?= $p['stok_gudang'] ?></p>
+                                    <p class="text-xs text-gray-600">Stok Gudang: <?= number_format($p['stok_gudang'], 0, ',', '.') ?></p>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -380,7 +380,7 @@ $cek_hilang = cek_selisih_stok();
                                     </div>
                                     <h3 class="font-bold text-sm mb-1 truncate"><?= $p['nama_produk'] ?></h3>
                                     <p class="text-xs <?= $p['stok_gudang'] > 0 ? 'text-green-600' : 'text-red-600' ?>">
-                                        Stok: <?= $p['stok_gudang'] ?> btl
+                                        Stok: <?= number_format($p['stok_gudang'], 0, ',', '.') ?> btl
                                     </p>
                                 </div>
                             <?php endforeach; ?>
@@ -510,9 +510,9 @@ $cek_hilang = cek_selisih_stok();
                                             <span class="font-bold"><?= $so['nama_produk'] ?></span>
                                         </div>
                                         <div class="flex justify-between mt-1">
-                                            <span>Sistem: <?= $so['stok_sistem'] ?> | Fisik: <?= $so['stok_fisik'] ?></span>
+                                            <span>Sistem: <?= number_format($so['stok_sistem'], 0, ',', '.') ?> | Fisik: <?= number_format($so['stok_fisik'], 0, ',', '.') ?></span>
                                             <span class="font-bold <?= $so['selisih'] > 0 ? 'text-red-600' : 'text-green-600' ?>">
-                                            <?= $so['selisih'] > 0 ? 'HILANG ' . $so['selisih'] : ($so['selisih'] < 0 ? 'LEBIH ' . abs($so['selisih']) : 'SESUAI') ?>
+                                            <?= $so['selisih'] > 0 ? 'HILANG ' . number_format($so['selisih'], 0, ',', '.') : ($so['selisih'] < 0 ? 'LEBIH ' . number_format(abs($so['selisih']), 0, ',', '.') : 'SESUAI') ?>
                                         </span>
                                         </div>
                                         <span class="text-sm"><?= date('d/m/Y', strtotime($so['tanggal'])) ?></span>
@@ -632,6 +632,10 @@ $cek_hilang = cek_selisih_stok();
             renderCartMasuk();
         }
 
+        function numFormat(n) {
+            return parseInt(n || 0).toLocaleString('id-ID');
+        }
+
         function renderCartMasuk() {
             const container = document.getElementById('cart-masuk-items');
             const count = document.getElementById('cart-masuk-count');
@@ -651,7 +655,7 @@ $cek_hilang = cek_selisih_stok();
                 <div class="flex justify-between items-start mb-2">
                     <div class="flex-1">
                         <h4 class="font-semibold text-sm">${item.nama}</h4>
-                        <p class="text-xs text-gray-600">Stok: ${item.stok_gudang} btl</p>
+                        <p class="text-xs text-gray-600">Stok: ${numFormat(item.stok_gudang)} btl</p>
                     </div>
                     <button onclick="cartMasuk.splice(${index}, 1); renderCartMasuk();"
                             class="text-red-500 hover:text-red-700 text-sm">✕</button>
@@ -659,7 +663,7 @@ $cek_hilang = cek_selisih_stok();
                 <div class="flex items-center gap-2">
                     <button onclick="updateQtyMasuk(${index}, -1)"
                             class="qty-btn bg-gray-300 hover:bg-gray-400 w-7 h-7 rounded flex items-center justify-center font-bold">−</button>
-                    <span class="font-bold w-12 text-center">${item.jumlah}</span>
+                    <span class="font-bold w-12 text-center">${numFormat(item.jumlah)}</span>
                     <button onclick="updateQtyMasuk(${index}, 1)"
                             class="qty-btn bg-green-600 hover:bg-green-700 text-white w-7 h-7 rounded flex items-center justify-center font-bold">+</button>
                     <span class="text-xs text-gray-500 ml-auto">botol</span>
@@ -764,7 +768,7 @@ $cek_hilang = cek_selisih_stok();
                 <div class="flex justify-between items-start mb-2">
                     <div class="flex-1">
                         <h4 class="font-semibold text-sm">${item.nama}</h4>
-                        <p class="text-xs text-gray-600">Max: ${item.stok_gudang} btl</p>
+                        <p class="text-xs text-gray-600">Max: ${numFormat(item.stok_gudang)} btl</p>
                     </div>
                     <button onclick="cartKeluar.splice(${index}, 1); renderCartKeluar();"
                             class="text-red-500 hover:text-red-700 text-sm">✕</button>
@@ -772,7 +776,7 @@ $cek_hilang = cek_selisih_stok();
                 <div class="flex items-center gap-2">
                     <button onclick="updateQtyKeluar(${index}, -1)"
                             class="qty-btn bg-gray-300 hover:bg-gray-400 w-7 h-7 rounded flex items-center justify-center font-bold">−</button>
-                    <span class="font-bold w-12 text-center">${item.jumlah}</span>
+                    <span class="font-bold w-12 text-center">${numFormat(item.jumlah)}</span>
                     <button onclick="updateQtyKeluar(${index}, 1)"
                             class="qty-btn bg-yellow-600 hover:bg-yellow-700 text-white w-7 h-7 rounded flex items-center justify-center font-bold">+</button>
                     <span class="text-xs text-gray-500 ml-auto">botol</span>
