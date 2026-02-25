@@ -31,9 +31,8 @@ function get_cabang(): ?array
     return query("SELECT * FROM cabang ORDER BY id");
 }
 
-function get_stok_gudang($produk_id) {
-    $result = query("SELECT stok_gudang FROM produk WHERE id = $produk_id");
-    return count($result) > 0 ? $result[0]['stok_gudang'] : 0;
+function get_stok_pusat($produk_id) {
+    return get_stok_cabang($produk_id, 2); // ID 2 is 'Pusat'
 }
 
 function get_stok_cabang($produk_id, $cabang_id) {
@@ -48,9 +47,10 @@ function cek_selisih_stok(): array
 
     // Ambil data stock opname dengan status HILANG dalam 7 hari terakhir dan belum ditutup
     $recent_so = query("
-        SELECT so.id, so.*, p.nama_produk, p.stok_gudang
+        SELECT so.id, so.*, p.nama_produk, sc.stok as stok_cabang
         FROM stock_opname so
         JOIN produk p ON so.produk_id = p.id
+        LEFT JOIN stok_cabang sc ON p.id = sc.produk_id AND sc.cabang_id = 2
         WHERE so.status = 'HILANG'
         AND so.tanggal >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
         AND so.is_cancelled = 0
@@ -61,7 +61,7 @@ function cek_selisih_stok(): array
         $warning[] = [
             'id'          => $so['id'],
             'produk'      => $so['nama_produk'],
-            'stok_gudang' => $so['stok_gudang'],
+            'stok_cabang' => $so['stok_cabang'] ?? 0,
             'stok_sistem' => $so['stok_sistem'],
             'stok_fisik'  => $so['stok_fisik'],
             'selisih'     => $so['selisih'],

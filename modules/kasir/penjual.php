@@ -4,7 +4,7 @@ require_once '../../includes/functions.php';
 
 if (!is_login()) redirect('../../login.php');
 
-$transaction_label = 'TRANSAKSI PENJUAL';
+$transaction_label = 'TRANSAKSI';
 $title = is_admin() ? $transaction_label : $transaction_label . ' - ' . $_SESSION['user']['nama'];
 
 include '../../includes/layout_header.php';
@@ -35,8 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_transaksi'])) 
             $harga_satuan = $harga_tawar;
             $jumlah_botol = ($satuan === 'dus') ? ($jumlah * 12) : $jumlah;
             
-            $harga_normal = ($satuan === 'dus') ? (float)$data_produk['harga_dus'] : (float)$data_produk['harga_jual'];
-            $selisih = ($harga_normal * $jumlah) - ($harga_tawar * $jumlah);
+            $selisih = 0; // Prices follow transactions now, no "normal" price to compare against.
 
             $subtotal = $harga_satuan * $jumlah;
 
@@ -100,7 +99,7 @@ $rekap = query("
     <!-- Header -->
     <div class="bg-white rounded-lg shadow p-4 mb-4">
         <h1 class="judul text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
-            <span class="mr-3">🤝</span> TRANSAKSI PENJUAL
+            <span class="mr-3">🛒</span> TRANSAKSI
         </h1>
         <p class="text-sm text-gray-600 mt-1">👤 <?= $_SESSION['user']['nama'] ?> | 📍 <?= $nama_cabang ?></p>
         <?php if (is_admin()): ?>
@@ -140,7 +139,7 @@ $rekap = query("
                             $is_empty = $stok <= 0;
                         ?>
                         <div class="product-card bg-white border-2 border-gray-200 rounded-lg p-3 <?= $is_empty ? 'opacity-40 grayscale pointer-events-none' : '' ?>"
-                             onclick="handleAddToCart(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>', <?= $p['harga_jual'] ?>, <?= $p['harga_dus'] ?>, <?= $stok ?>)">
+                             onclick="handleAddToCart(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>', <?= $stok ?>)">
                             <div class="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg h-20 flex items-center justify-center mb-2">
                                 <span class="text-3xl">🥤</span>
                             </div>
@@ -172,7 +171,7 @@ $rekap = query("
                         <input type="hidden" name="cart_data" id="form-cart-data">
                         <div class="mb-3">
                             <label class="block text-sm font-medium mb-2">Keterangan</label>
-                            <input type="text" name="keterangan" class="w-full border rounded-lg p-2 text-sm" placeholder="Nama penjual...">
+                            <input type="text" name="keterangan" class="w-full border rounded-lg p-2 text-sm" placeholder="Opsional...">
                         </div>
                         <button type="submit" id="btn-bayar" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg disabled:opacity-50" disabled>✅ PROSES</button>
                     </form>
@@ -201,9 +200,9 @@ function setGlobalUnit(unit) {
     }
 }
 
-function handleAddToCart(id, nama, hargaJual, hargaDus, stok) {
+function handleAddToCart(id, nama, stok) {
     const satuan = globalUnit;
-    const defaultHarga = satuan === 'dus' ? hargaDus : hargaJual;
+    const defaultHarga = 0;
     openHargaTawarModal(nama + ' (' + satuan.toUpperCase() + ')', defaultHarga, function(hargaTawar) {
         if (hargaTawar > 0) {
             const existing = cart.find(i => i.produk_id === id && i.satuan === satuan);
@@ -217,7 +216,7 @@ function handleAddToCart(id, nama, hargaJual, hargaDus, stok) {
                 const initBotol = satuan === 'dus' ? 12 : 1;
                 if(initBotol > stok) { alert('Stok tidak cukup! Sisa: ' + stok + ' botol'); return; }
                 cart.push({
-                    produk_id: id, nama, harga_jual: hargaJual, harga_dus: hargaDus,
+                    produk_id: id, nama, 
                     jumlah: 1, satuan: satuan, stok, harga_tawar: hargaTawar
                 });
             }
@@ -228,8 +227,7 @@ function handleAddToCart(id, nama, hargaJual, hargaDus, stok) {
 
 function editHargaTawar(index) {
     const item = cart[index];
-    const hargaNormal = item.satuan === 'dus' ? item.harga_dus : item.harga_jual;
-    openHargaTawarModal(item.nama + ' (' + item.satuan.toUpperCase() + ')', item.harga_tawar || hargaNormal, function(harga) {
+    openHargaTawarModal(item.nama + ' (' + item.satuan.toUpperCase() + ')', item.harga_tawar, function(harga) {
         if (harga > 0) {
             cart[index].harga_tawar = harga;
             renderCart();
@@ -364,11 +362,11 @@ renderCart();
 <!-- Harga Tawar Modal -->
 <div id="hargaTawarModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
     <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
-        <h3 class="text-lg font-bold text-gray-800 mb-1">💰 Input Harga Khusus</h3>
+        <h3 class="text-lg font-bold text-gray-800 mb-1">💰 Input Harga</h3>
         <p class="text-sm text-gray-500 mb-4" id="htawar-modal-nama"></p>
         
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Harga Kesepakatan (Rp)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Harga (Rp)</label>
             <input type="number" id="htawar-modal-input" placeholder="Contoh: 25000"
                    class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-500">
         </div>

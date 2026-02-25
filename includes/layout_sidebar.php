@@ -59,7 +59,7 @@ $root_path = $root ?? '';
                     <li>
                         <button onclick="toggleDropdown('gudang')"
                                 class="w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
-                   <?= str_contains($_SERVER['REQUEST_URI'], '/gudang/') ? 'bg-blue-700 shadow-lg' : '' ?>">
+                   <?= (str_contains($_SERVER['REQUEST_URI'], '/gudang/') || basename($_SERVER['PHP_SELF']) === 'info_cabang.php' || basename($_SERVER['PHP_SELF']) === 'total_stok.php') ? 'bg-blue-700 shadow-lg' : '' ?>">
                             <div class="flex items-center">
                                 <span class="text-xl mr-3">🏚️</span>
                                 <span>Gudang</span>
@@ -68,85 +68,67 @@ $root_path = $root ?? '';
                         </button>
                         <ul id="gudangDropdown" class="ml-6 mt-2 space-y-1 hidden">
                             <li>
-                                <a href="<?= $root_path ?>modules/gudang/stok_masuk.php"
+                                <a href="<?= $root_path ?>modules/admin/total_stok.php"
                                    class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
-                      <?= basename($_SERVER['PHP_SELF']) == 'stok_masuk.php' ? 'bg-blue-700' : '' ?>">
-                                    📥 Stok Masuk
+                      <?= basename($_SERVER['PHP_SELF']) == 'total_stok.php' ? 'bg-blue-700' : '' ?>">
+                                    📦 Total Stok
                                 </a>
                             </li>
-                            <li>
-                                <a href="<?= $root_path ?>modules/gudang/stok_keluar.php"
-                                   class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
-                      <?= basename($_SERVER['PHP_SELF']) == 'stok_keluar.php' ? 'bg-blue-700' : '' ?>">
-                                    📤 Stok Keluar
-                                </a>
+                            <li class="pt-2">
+                                <span class="block pl-4 text-xs uppercase tracking-wide text-blue-200 opacity-80">Info Cabang</span>
                             </li>
-                            <li>
-                                <a href="<?= $root_path ?>modules/gudang/stok_opname.php"
-                                   class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
-                      <?= basename($_SERVER['PHP_SELF']) == 'stok_opname.php' ? 'bg-blue-700' : '' ?>">
-                                    📋 Stok Opname
-                                </a>
-                            </li>
-                            <li>
-                                <a href="<?= $root_path ?>modules/gudang/pengeluaran.php"
-                                   class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
-                      <?= basename($_SERVER['PHP_SELF']) == 'pengeluaran.php' ? 'bg-blue-700' : '' ?>">
-                                    💸 Pengeluaran
-                                </a>
-                            </li>
+                            <?php foreach (get_cabang() as $c): ?>
+                                <li>
+                                    <a href="<?= $root_path ?>modules/admin/info_cabang.php?cabang=<?= $c['id'] ?>"
+                                       class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all">
+                                        📍 <?= $c['nama_cabang'] ?>
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
                         </ul>
                     </li>
-                <!-- Transaksi Dropdown -->
+                <!-- Stok Dropdown -->
                 <li>
-                    <button onclick="toggleDropdown('transaksi')"
+                    <button onclick="toggleDropdown('stok')"
                             class="w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
-                                   <?= str_contains($_SERVER['REQUEST_URI'], '/kasir/') ? 'bg-blue-700 shadow-lg' : '' ?>">
+                                   <?= in_array(basename($_SERVER['PHP_SELF']), ['stok_masuk.php', 'stok_keluar.php', 'stok_opname.php']) ? 'bg-blue-700 shadow-lg' : '' ?>">
                         <div class="flex items-center">
-                            <span class="text-xl mr-3">🛒</span>
-                            <span>Transaksi</span>
+                            <span class="text-xl mr-3">📦</span>
+                            <span>Stok</span>
                         </div>
-                        <span id="transaksiIcon" class="transition-transform">▼</span>
+                        <span id="stokIcon" class="transition-transform">▼</span>
                     </button>
-                    <ul id="transaksiDropdown" class="ml-6 mt-2 space-y-1 hidden">
+                    <ul id="stokDropdown" class="ml-6 mt-2 space-y-1 hidden">
                         <li>
-                            <a href="<?= $root_path ?>modules/kasir/pembeli.php"
+                            <a href="<?= $root_path ?>modules/gudang/stok_masuk.php"
                                class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
-                                      <?= (basename($_SERVER['PHP_SELF']) == 'pembeli.php') ? 'bg-blue-700' : '' ?>">
-                                🛒 Transaksi Pembeli
+                      <?= basename($_SERVER['PHP_SELF']) == 'stok_masuk.php' ? 'bg-blue-700' : '' ?>">
+                                📥 Stok Masuk
                             </a>
                         </li>
                         <li>
-                            <a href="<?= $root_path ?>modules/kasir/penjual.php"
+                            <a href="<?= $root_path ?>modules/gudang/stok_keluar.php"
                                class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
-                                      <?= (basename($_SERVER['PHP_SELF']) == 'penjual.php') ? 'bg-blue-700' : '' ?>">
-                                🤝 Transaksi Penjual
+                      <?= basename($_SERVER['PHP_SELF']) == 'stok_keluar.php' ? 'bg-blue-700' : '' ?>">
+                                📤 Stok Keluar
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= $root_path ?>modules/gudang/stok_opname.php"
+                               class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
+                      <?= basename($_SERVER['PHP_SELF']) == 'stok_opname.php' ? 'bg-blue-700' : '' ?>">
+                                📋 Stok Opname
                             </a>
                         </li>
                     </ul>
                 </li>
-
-                <!-- Info Cabang Dropdown -->
                 <li>
-                    <button onclick="toggleDropdown('infoCabang')"
-                            class="w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
-                                   <?= str_contains($_SERVER['REQUEST_URI'], '/info_cabang') ? 'bg-blue-700 shadow-lg' : '' ?>">
-                        <div class="flex items-center">
-                            <span class="text-xl mr-3">🏢</span>
-                            <span>Info Cabang</span>
-                        </div>
-                        <span id="infoCabangIcon" class="transition-transform">▼</span>
-                    </button>
-                    <ul id="infoCabangDropdown" class="ml-6 mt-2 space-y-1 hidden">
-                        <?php foreach (get_cabang() as $c): ?>
-                        <li>
-                            <a href="<?= $root_path ?>modules/admin/info_cabang.php?cabang=<?= $c['id'] ?>"
-                               class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all">
-                                📍 <?= $c['nama_cabang'] ?>
-                            </a>
-                        </li>
-                        <?php endforeach; ?>
-                    </ul>
+                    <a href="<?= $root_path ?>modules/kasir/penjual.php"
+                       class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
+                               <?= (basename($_SERVER['PHP_SELF']) == 'penjual.php') ? 'bg-blue-700 shadow-lg' : '' ?>">
+                        <span class="text-xl mr-3">🛒</span>
+                        <span>Kasir</span>
+                    </a>
                 </li>
 
                 <!-- Laporan Dropdown -->
@@ -176,6 +158,13 @@ $root_path = $root ?? '';
                             </a>
                         </li>
                         <li>
+                            <a href="<?= $root_path ?>modules/admin/laporan_pengeluaran.php"
+                               class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
+                                      <?= basename($_SERVER['PHP_SELF']) == 'laporan_pengeluaran.php' ? 'bg-blue-700' : '' ?>">
+                                💸 Laporan Pengeluaran
+                            </a>
+                        </li>
+                        <li>
                             <a href="<?= $root_path ?>modules/admin/rekap.php"
                                class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
                                       <?= basename($_SERVER['PHP_SELF']) == 'rekap.php' ? 'bg-blue-700' : '' ?>">
@@ -191,6 +180,14 @@ $root_path = $root ?? '';
                                <?= str_contains($_SERVER['REQUEST_URI'], '/tambah_stok') ? 'bg-blue-700 shadow-lg' : '' ?>">
                         <span class="text-xl mr-3">➕</span>
                         <span>Tambah Produk</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= $root_path ?>modules/gudang/pengeluaran.php"
+                       class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
+                               <?= basename($_SERVER['PHP_SELF']) == 'pengeluaran.php' ? 'bg-blue-700 shadow-lg' : '' ?>">
+                        <span class="text-xl mr-3">💸</span>
+                        <span>Pengeluaran</span>
                     </a>
                 </li>
                 <?php endif; ?>
@@ -256,13 +253,25 @@ document.getElementById('overlay')?.addEventListener('click', function() {
 });
 
 // Buka dropdown jika halaman aktif
-['gudang', 'transaksi', 'infoCabang', 'laporan'].forEach(id => {
+const currentPath = window.location.pathname;
+['gudang', 'stok', 'laporan'].forEach(id => {
     const dropdown = document.getElementById(id + 'Dropdown');
     const icon = document.getElementById(id + 'Icon');
-    const isKasirMatch = (id === 'transaksi' && window.location.pathname.includes('/kasir/'));
-    const isOtherMatch = window.location.pathname.includes('/' + id.toLowerCase() + '/');
-    
-    if (dropdown && (isKasirMatch || isOtherMatch)) {
+    let isMatch = false;
+
+    if (id === 'gudang') {
+        isMatch = currentPath.includes('/gudang/')
+            || currentPath.includes('/info_cabang.php')
+            || currentPath.includes('/total_stok.php');
+    } else if (id === 'stok') {
+        isMatch = currentPath.includes('stok_masuk.php')
+            || currentPath.includes('stok_keluar.php')
+            || currentPath.includes('stok_opname.php');
+    } else if (id === 'laporan') {
+        isMatch = currentPath.includes('/laporan');
+    }
+
+    if (dropdown && isMatch) {
         dropdown.classList.remove('hidden');
         if (icon) icon.style.transform = 'rotate(180deg)';
     }

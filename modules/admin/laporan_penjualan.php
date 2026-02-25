@@ -28,43 +28,25 @@ if ($use_new_structure) {
     // Rekap per cabang
     $rekap_cabang = [];
     foreach ($cabang_list as $c) {
-        $rekap_pembeli = query("
+        $rekap = query("
             SELECT
                 COUNT(*) as total_transaksi,
                 SUM(total_harga) as total_penjualan
             FROM transaksi_header
             WHERE cabang_id = {$c['id']}
-              AND tipe = 'pembeli'
-              AND DATE(created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'
-        ")[0];
-        
-        $rekap_penjual = query("
-            SELECT
-                COUNT(*) as total_transaksi,
-                SUM(total_harga) as total_pembelian
-            FROM transaksi_header
-            WHERE cabang_id = {$c['id']}
-              AND tipe = 'penjual'
               AND DATE(created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'
         ")[0];
 
         $rekap_cabang[$c['id']] = [
             'nama' => $c['nama_cabang'],
-            'transaksi_pembeli' => $rekap_pembeli['total_transaksi'] ?? 0,
-            'transaksi_penjual' => $rekap_penjual['total_transaksi'] ?? 0,
-            'penjualan' => $rekap_pembeli['total_penjualan'] ?? 0,
-            'pembelian' => $rekap_penjual['total_pembelian'] ?? 0
+            'transaksi' => $rekap['total_transaksi'] ?? 0,
+            'penjualan' => $rekap['total_penjualan'] ?? 0
         ];
     }
 
     // Totals
     $total_penjualan = array_sum(array_column($rekap_cabang, 'penjualan'));
-    $total_pembelian = array_sum(array_column($rekap_cabang, 'pembelian'));
-    
-    // Total transactions counts
-    $total_count_pembeli = array_sum(array_column($rekap_cabang, 'transaksi_pembeli'));
-    $total_count_penjual = array_sum(array_column($rekap_cabang, 'transaksi_penjual'));
-    $total_transaksi = $total_count_pembeli + $total_count_penjual;
+    $total_transaksi = array_sum(array_column($rekap_cabang, 'transaksi'));
 
     // Get transaction headers
     $transaksi_headers = query("
@@ -155,21 +137,14 @@ $transaksi_page = array_slice($transaksi_headers, $offset, $limit);
             <span class="mr-3">📊</span> REKAP TRANSAKSI <?= date('d/m/Y', strtotime($tanggal_mulai)) ?> - <?= date('d/m/Y', strtotime($tanggal_akhir)) ?>
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-white bg-opacity-20 p-6 rounded-lg border border-white border-opacity-20">
-                <p class="text-sm opacity-90 font-bold uppercase tracking-wider">🛒 PENJUALAN DARI PEMBELI</p>
-                <p class="text-3xl font-bold mt-2 font-mono"><?= rupiah($total_penjualan) ?></p>
-                <p class="text-xs mt-1 opacity-75"><?= $total_count_pembeli ?> Transaksi Pembeli</p>
-            </div>
-            <div class="bg-white bg-opacity-20 p-6 rounded-lg border border-white border-opacity-20">
-                <p class="text-sm opacity-90 font-bold uppercase tracking-wider">🤝 PENJUALAN DARI PENJUAL</p>
-                <p class="text-3xl font-bold mt-2 font-mono"><?= rupiah($total_pembelian) ?></p>
-                <p class="text-xs mt-1 opacity-75"><?= $total_count_penjual ?> Transaksi Penjual</p>
+                <p class="text-sm opacity-90 font-bold uppercase tracking-wider">💰 TOTAL PENJUALAN</p>
+                <p class="text-5xl font-bold mt-2 font-mono"><?= rupiah($total_penjualan) ?></p>
             </div>
             <div class="bg-white bg-opacity-20 p-6 rounded-lg border border-white border-opacity-20">
                 <p class="text-sm opacity-90 font-bold uppercase tracking-wider">📈 TOTAL TRANSAKSI</p>
                 <p class="text-5xl font-bold mt-2 font-mono"><?= $total_transaksi ?></p>
-                <p class="text-xs mt-2 opacity-75">Gabungan Pembeli & Penjual</p>
             </div>
         </div>
     </div>
@@ -183,21 +158,13 @@ $transaksi_page = array_slice($transaksi_headers, $offset, $limit);
                 <span class="mr-2">🏢</span> <?= $r['nama'] ?>
             </h3>
             <div class="space-y-1">
-                <div class="flex justify-between text-xs">
-                    <span class="text-gray-500 font-bold">PEMBELI:</span>
+                <div class="flex justify-between text-base">
+                    <span class="text-gray-500 font-bold">TOTAL:</span>
                     <span class="font-bold text-indigo-700"><?= rupiah($r['penjualan']) ?></span>
                 </div>
-                <div class="flex justify-between text-[10px] text-gray-400 pl-2">
+                <div class="flex justify-between text-xs text-gray-400 pl-2">
                     <span>Transaksi:</span>
-                    <span><?= $r['transaksi_pembeli'] ?></span>
-                </div>
-                <div class="flex justify-between text-xs border-t pt-1">
-                    <span class="text-gray-500 font-bold">PENJUAL:</span>
-                    <span class="font-bold text-purple-700"><?= rupiah($r['pembelian']) ?></span>
-                </div>
-                <div class="flex justify-between text-[10px] text-gray-400 pl-2">
-                    <span>Transaksi:</span>
-                    <span><?= $r['transaksi_penjual'] ?></span>
+                    <span><?= $r['transaksi'] ?></span>
                 </div>
             </div>
         </div>
