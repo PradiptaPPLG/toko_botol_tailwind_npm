@@ -202,17 +202,23 @@ function setGlobalUnit(unit) {
 }
 
 function handleAddToCart(id, nama, hargaJual, hargaDus, stok) {
-    const defaultHarga = globalUnit === 'dus' ? hargaDus : hargaJual;
-    openHargaTawarModal(nama + ' (' + globalUnit.toUpperCase() + ')', defaultHarga, function(hargaTawar) {
+    const satuan = globalUnit;
+    const defaultHarga = satuan === 'dus' ? hargaDus : hargaJual;
+    openHargaTawarModal(nama + ' (' + satuan.toUpperCase() + ')', defaultHarga, function(hargaTawar) {
         if (hargaTawar > 0) {
-            const existing = cart.find(i => i.produk_id === id && i.satuan === globalUnit);
+            const existing = cart.find(i => i.produk_id === id && i.satuan === satuan);
             if(existing) {
-                existing.jumlah++;
+                const newJumlah = existing.jumlah + 1;
+                const newBotol = satuan === 'dus' ? newJumlah * 12 : newJumlah;
+                if(newBotol > stok) { alert('Melebihi stok! Sisa: ' + stok + ' botol'); return; }
+                existing.jumlah = newJumlah;
                 existing.harga_tawar = hargaTawar;
             } else {
+                const initBotol = satuan === 'dus' ? 12 : 1;
+                if(initBotol > stok) { alert('Stok tidak cukup! Sisa: ' + stok + ' botol'); return; }
                 cart.push({
                     produk_id: id, nama, harga_jual: hargaJual, harga_dus: hargaDus,
-                    jumlah: 1, satuan: globalUnit, stok, harga_tawar: hargaTawar
+                    jumlah: 1, satuan: satuan, stok, harga_tawar: hargaTawar
                 });
             }
             renderCart();
@@ -232,8 +238,31 @@ function editHargaTawar(index) {
 }
 
 function updateQty(index, delta) {
-    cart[index].jumlah += delta;
-    if(cart[index].jumlah <= 0) cart.splice(index, 1);
+    let newQty = cart[index].jumlah + delta;
+    if(newQty <= 0) { cart.splice(index, 1); }
+    else {
+        const item = cart[index];
+        const newBotol = item.satuan === 'dus' ? newQty * 12 : newQty;
+        if(newBotol > item.stok) { alert('Melebihi stok! Sisa: ' + item.stok + ' botol'); return; }
+        cart[index].jumlah = newQty;
+    }
+    renderCart();
+}
+
+function setQty(index, value) {
+    let newQty = parseInt(value) || 0;
+    if(newQty <= 0) {
+        cart.splice(index, 1);
+    } else {
+        const item = cart[index];
+        const newBotol = item.satuan === 'dus' ? newQty * 12 : newQty;
+        if(newBotol > item.stok) {
+            alert('Melebihi stok! Sisa: ' + item.stok + ' botol');
+            renderCart();
+            return;
+        }
+        cart[index].jumlah = newQty;
+    }
     renderCart();
 }
 
@@ -270,9 +299,11 @@ function renderCart() {
                 <button onclick="editHargaTawar(${idx})" class="ml-auto text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2 py-0.5 rounded">✏️ Ubah</button>
             </div>
             <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center">
                     <button onclick="updateQty(${idx}, -1)" class="qty-btn bg-gray-300 w-7 h-7 rounded">−</button>
-                    <span class="font-bold w-12 text-center text-sm">${numFormat(item.jumlah)}</span>
+                    <input type="number" value="${item.jumlah}" 
+                           onchange="setQty(${idx}, this.value)"
+                           class="w-14 text-center border rounded font-bold text-sm mx-1 focus:ring-1 focus:ring-blue-500 outline-none">
                     <button onclick="updateQty(${idx}, 1)" class="qty-btn bg-purple-600 text-white w-7 h-7 rounded">+</button>
                 </div>
                 <div class="text-right">

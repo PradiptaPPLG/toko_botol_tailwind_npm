@@ -13,6 +13,7 @@ if (!$cabang_info) {
 $title = 'Info Cabang - ' . $cabang_info['nama_cabang'];
 include '../../includes/layout_header.php';
 include '../../includes/layout_sidebar.php';
+include '../../includes/modal_confirm.php';
 
 // Get stock per product for this branch
 $stok_cabang = query("

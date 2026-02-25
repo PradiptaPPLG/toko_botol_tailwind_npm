@@ -203,21 +203,50 @@ function setGlobalUnit(unit) {
 }
 
 function addToCart(id, nama, hargaJual, hargaDus, stok) {
-    const existing = cart.find(i => i.produk_id === id && i.satuan === globalUnit);
+    const satuan = globalUnit;
+    const existing = cart.find(i => i.produk_id === id && i.satuan === satuan);
     if(existing) {
-        existing.jumlah++;
+        const newJumlah = existing.jumlah + 1;
+        const newBotol = satuan === 'dus' ? newJumlah * 12 : newJumlah;
+        if(newBotol > stok) { alert('Melebihi stok! Sisa: ' + stok + ' botol'); return; }
+        existing.jumlah = newJumlah;
     } else {
+        const initBotol = satuan === 'dus' ? 12 : 1;
+        if(initBotol > stok) { alert('Stok tidak cukup! Sisa: ' + stok + ' botol'); return; }
         cart.push({
             produk_id: id, nama, harga_jual: hargaJual, harga_dus: hargaDus,
-            jumlah: 1, satuan: globalUnit, stok
+            jumlah: 1, satuan: satuan, stok
         });
     }
     renderCart();
 }
 
 function updateQty(index, delta) {
-    cart[index].jumlah += delta;
-    if(cart[index].jumlah <= 0) cart.splice(index, 1);
+    let newQty = cart[index].jumlah + delta;
+    if(newQty <= 0) { cart.splice(index, 1); }
+    else {
+        const item = cart[index];
+        const newBotol = item.satuan === 'dus' ? newQty * 12 : newQty;
+        if(newBotol > item.stok) { alert('Melebihi stok! Sisa: ' + item.stok + ' botol'); return; }
+        cart[index].jumlah = newQty;
+    }
+    renderCart();
+}
+
+function setQty(index, value) {
+    let newQty = parseInt(value) || 0;
+    if(newQty <= 0) {
+        cart.splice(index, 1);
+    } else {
+        const item = cart[index];
+        const newBotol = item.satuan === 'dus' ? newQty * 12 : newQty;
+        if(newBotol > item.stok) {
+            alert('Melebihi stok! Sisa: ' + item.stok + ' botol');
+            renderCart();
+            return;
+        }
+        cart[index].jumlah = newQty;
+    }
     renderCart();
 }
 
@@ -253,9 +282,11 @@ function renderCart() {
                 <span class="text-xs font-bold text-indigo-700">${formatRp(harga)}</span>
             </div>
             <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center">
                     <button onclick="updateQty(${idx}, -1)" class="qty-btn bg-gray-300 w-7 h-7 rounded">−</button>
-                    <span class="font-bold w-12 text-center text-sm">${numFormat(item.jumlah)}</span>
+                    <input type="number" value="${item.jumlah}" 
+                           onchange="setQty(${idx}, this.value)"
+                           class="w-14 text-center border rounded font-bold text-sm mx-1 focus:ring-1 focus:ring-blue-500 outline-none">
                     <button onclick="updateQty(${idx}, 1)" class="qty-btn bg-blue-600 text-white w-7 h-7 rounded">+</button>
                 </div>
                 <div class="text-right">

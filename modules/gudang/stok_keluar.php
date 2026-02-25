@@ -26,13 +26,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['batch_stok_keluar']))
     $keterangan = escape_string($_POST['keterangan']);
 
     if (!empty($cart_items)) {
-        $batch_id = 'SK-' . date('Ymd') . '-' . rand(1000, 9999);
+        // Batch prefix: ST- for transfer, SR- for rusak
+        $batch_prefix = ($kondisi === 'transfer') ? 'ST' : 'SR';
+        $batch_id = $batch_prefix . '-' . date('Ymd') . '-' . rand(1000, 9999);
         $success_count = 0;
         $errors = [];
 
         foreach ($cart_items as $item) {
             $produk_id = $item['produk_id'];
-            $jumlah = intval($item['jumlah']);
+            $satuan = $item['satuan'] ?? 'botol';
+            $jumlah_input = intval($item['jumlah']);
+            
+            // Convert to botol for DB
+            $jumlah = ($satuan === 'dus') ? $jumlah_input * 12 : $jumlah_input;
+            
             $stok_gudang = get_stok_gudang($produk_id);
 
             if ($stok_gudang >= $jumlah) {
@@ -52,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['batch_stok_keluar']))
                 execute($sql);
                 $success_count++;
             } else {
-                $errors[] = $item['nama'] . " - Stok tidak cukup (tersedia: $stok_gudang)";
+                $errors[] = $item['nama'] . " - Stok tidak cukup (tersedia: $stok_gudang btl)";
             }
         }
 
@@ -107,7 +114,13 @@ include '../../includes/modal_confirm.php';
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-lg shadow p-4">
-                    <h2 class="text-xl font-bold mb-4">🥤 Pilih Produk</h2>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">🥤 Pilih Produk</h2>
+                        <div class="flex bg-gray-100 rounded-lg p-1">
+                            <button onclick="setGlobalUnit('botol')" id="unit-botol" class="px-3 py-1 rounded text-xs font-semibold bg-white text-yellow-600">Botol</button>
+                            <button onclick="setGlobalUnit('dus')" id="unit-dus" class="px-3 py-1 rounded text-xs font-semibold text-gray-500">Dus</button>
+                        </div>
+                    </div>
                     <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                         <?php foreach ($produk as $p): ?>
                             <?php $disabled = $p['stok_gudang'] <= 0 ? 'opacity-50 cursor-not-allowed' : ''; ?>
@@ -178,6 +191,21 @@ include '../../includes/modal_confirm.php';
     <script>
         let cartKeluar = [];
         let kondisi = 'rusak';
+        let globalUnit = 'botol';
+
+        function setGlobalUnit(unit) {
+            globalUnit = unit;
+            const btnBotol = document.getElementById('unit-botol');
+            const btnDus = document.getElementById('unit-dus');
+            
+            if(unit === 'botol') {
+                btnBotol.className = 'px-3 py-1 rounded text-xs font-semibold bg-white text-yellow-600';
+                btnDus.className = 'px-3 py-1 rounded text-xs font-semibold text-gray-500';
+            } else {
+                btnBotol.className = 'px-3 py-1 rounded text-xs font-semibold text-gray-500';
+                btnDus.className = 'px-3 py-1 rounded text-xs font-semibold bg-white text-yellow-600';
+            }
+        }
 
         function setKondisi(type) {
             kondisi = type;
@@ -194,21 +222,47 @@ include '../../includes/modal_confirm.php';
         }
 
         function addToCartKeluar(id, nama, stokGudang) {
-            let item = cartKeluar.find(i => i.produk_id === id);
+            const satuan = globalUnit;
+            let item = cartKeluar.find(i => i.produk_id === id && i.satuan === satuan);
             if (item) {
-                if (item.jumlah < stokGudang) item.jumlah++;
-                else { alert('Melebihi stok!'); return; }
+                const newJumlah = item.jumlah + 1;
+                const newBotol = satuan === 'dus' ? newJumlah * 12 : newJumlah;
+                if (newBotol > stokGudang) { alert('Melebihi stok!'); return; }
+                item.jumlah = newJumlah;
             } else {
-                cartKeluar.push({ produk_id: id, nama, jumlah: 1, stok_gudang: stokGudang });
+                const initBotol = satuan === 'dus' ? 12 : 1;
+                if (initBotol > stokGudang) { alert('Stok tidak cukup!'); return; }
+                cartKeluar.push({ produk_id: id, nama, jumlah: 1, stok_gudang: stokGudang, satuan: satuan });
             }
             renderCartKeluar();
         }
 
         function updateQtyKeluar(index, delta) {
             let newQty = cartKeluar[index].jumlah + delta;
-            if (newQty <= 0) cartKeluar.splice(index, 1);
-            else if (newQty > cartKeluar[index].stok_gudang) alert('Melebihi stok!');
-            else cartKeluar[index].jumlah = newQty;
+            if (newQty <= 0) { cartKeluar.splice(index, 1); }
+            else {
+                const item = cartKeluar[index];
+                const newBotol = item.satuan === 'dus' ? newQty * 12 : newQty;
+                if (newBotol > item.stok_gudang) { alert('Melebihi stok!'); return; }
+                cartKeluar[index].jumlah = newQty;
+            }
+            renderCartKeluar();
+        }
+
+        function setQtyKeluar(index, value) {
+            let newQty = parseInt(value) || 0;
+            if (newQty <= 0) {
+                cartKeluar.splice(index, 1);
+            } else {
+                const item = cartKeluar[index];
+                const newBotol = item.satuan === 'dus' ? newQty * 12 : newQty;
+                if (newBotol > item.stok_gudang) {
+                    alert('Melebihi stok!');
+                    renderCartKeluar();
+                    return;
+                }
+                cartKeluar[index].jumlah = newQty;
+            }
             renderCartKeluar();
         }
 
@@ -228,16 +282,26 @@ include '../../includes/modal_confirm.php';
             }
             let html = '';
             cartKeluar.forEach((item, idx) => {
+                const isDus = item.satuan === 'dus';
+                const totalBotol = isDus ? item.jumlah * 12 : item.jumlah;
+                const unitLabel = isDus ? 'dus' : 'botol';
                 html += `<div class="border rounded-lg p-2 bg-gray-50">
             <div class="flex justify-between items-start mb-2">
-                <div><h4 class="font-semibold text-sm">${item.nama}</h4><p class="text-xs text-gray-600">Max: ${item.stok_gudang}</p></div>
+                <div><h4 class="font-semibold text-sm">${item.nama}</h4><p class="text-xs text-gray-600">Max: ${item.stok_gudang} btl</p></div>
                 <button onclick="cartKeluar.splice(${idx},1); renderCartKeluar();" class="text-red-500 text-sm">✕</button>
             </div>
-            <div class="flex items-center gap-2">
-                <button onclick="updateQtyKeluar(${idx}, -1)" class="qty-btn bg-gray-300 w-7 h-7 rounded">−</button>
-                <span class="font-bold w-12 text-center">${numFormat(item.jumlah)}</span>
-                <button onclick="updateQtyKeluar(${idx}, 1)" class="qty-btn bg-yellow-600 text-white w-7 h-7 rounded">+</button>
-                <span class="text-xs ml-auto">botol</span>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <button onclick="updateQtyKeluar(${idx}, -1)" class="qty-btn bg-gray-300 w-7 h-7 rounded">−</button>
+                    <input type="number" value="${item.jumlah}" 
+                           onchange="setQtyKeluar(${idx}, this.value)"
+                           class="w-14 text-center border rounded font-bold text-sm mx-1 focus:ring-1 focus:ring-yellow-500 outline-none">
+                    <button onclick="updateQtyKeluar(${idx}, 1)" class="qty-btn bg-yellow-600 text-white w-7 h-7 rounded">+</button>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs font-semibold">${unitLabel}</p>
+                    <p class="text-[10px] text-gray-500">${numFormat(totalBotol)} botol</p>
+                </div>
             </div>
         </div>`;
             });

@@ -4,15 +4,11 @@
   "description": "Aplikasi Kasir Toko Botol",
   "main": "index.js",
   "scripts": {
-    "setup": "npm install && echo 'install dependencies complete, next to copy environment' && cp includes/config.php.example includes/config.php && echo 'copy environment complete, next to migration' && npm run migrate:fresh",
+    "setup": "npm install && echo 'install dependencies complete, next to copy environment' && cp includes/config.php.example includes/config.php && echo 'copy environment complete, next to migration' && php migrate fresh --seed",
     "build": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/tailwind.css --minify",
     "watch": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/tailwind.css --watch",
     "setup:build": "npm run setup && npm run build",
-    "setup:watch": "npm run setup && npm run watch",
-    "migrate": "php migrate",
-    "migrate:status": "php migrate status",
-    "migrate:fresh": "php migrate fresh",
-    "db:migrate": "php migrate"
+    "setup:watch": "npm run setup && npm run watch"
   },
   "keywords": [],
   "author": "",
