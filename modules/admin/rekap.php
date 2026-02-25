@@ -6,6 +6,7 @@ if (!is_login() || !is_admin()) redirect('../../login.php');
 $title = 'Rekap Keuntungan';
 include '../../includes/layout_header.php';
 include '../../includes/layout_sidebar.php';
+include '../../includes/modal_confirm.php';
 
 $tanggal_mulai = $_GET['tanggal_mulai'] ?? date('Y-m-01'); // Default to start of current month
 $tanggal_akhir = $_GET['tanggal_akhir'] ?? date('Y-m-d');

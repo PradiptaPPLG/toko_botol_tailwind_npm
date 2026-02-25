@@ -4,7 +4,7 @@ date_default_timezone_set('Asia/Jakarta');
 
 $host = 'localhost';
 $user = 'root';
-$pass = 'artikaroot';
+$pass = '';
 $dbname = 'kasir_toko';
 
 $conn = new mysqli($host, $user, $pass, $dbname);
@@ -13,6 +13,6 @@ if ($conn->connect_error) {
     die("Koneksi gagal: " . $conn->connect_error);
 }
 
-$root = '/pos/';
+$root = '/toko_botol_tailwind_npm/';
 $base_url = 'http://localhost'.$root;
 ?>
