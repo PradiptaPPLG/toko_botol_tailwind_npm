@@ -7,9 +7,9 @@ class AdminSeeder extends Seeder
         $this->truncate('admin');
 
         $this->insert('admin', [
-            'username'     => 'admin',
-            'password'     => '$2y$10$zb0s6bb7tnCkBP4L25V5d.6k6LiU.9.Ndf3G/WRZ3Eps8gZmgc.O6',
-            'nama_lengkap' => 'Admin Utama',
+            'username'     => 'pdk',
+            'password'     => password_hash('op.delia', PASSWORD_BCRYPT, ['cost' => 12]),
+            'nama_lengkap' => 'PDK',
         ]);
     }
 }
