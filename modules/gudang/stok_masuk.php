@@ -43,7 +43,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['batch_stok_masuk'])) 
                 $total_item = $jumlah * $harga_input;
             }
 
-            execute("UPDATE produk SET stok_gudang = stok_gudang + $jumlah_botol, harga_beli = $harga_beli_satuan WHERE id = $produk_id");
+            // Add to stok_cabang for Pusat (cabang_id = 1)
+            $check = query("SELECT * FROM stok_cabang WHERE produk_id = $produk_id AND cabang_id = 1");
+            if (count($check) > 0) {
+                execute("UPDATE stok_cabang SET stok = stok + $jumlah_botol WHERE produk_id = $produk_id AND cabang_id = 1");
+            } else {
+                execute("INSERT INTO stok_cabang (produk_id, cabang_id, stok) VALUES ($produk_id, 1, $jumlah_botol)");
+            }
+
+            // Update stok_gudang (will be synced as total of all cabang)
+            execute("UPDATE produk SET harga_beli = $harga_beli_satuan WHERE id = $produk_id");
+
             execute("INSERT INTO stok_masuk (produk_id, jumlah, harga_beli_satuan, total_belanja, keterangan, batch_id)
                      VALUES ($produk_id, $jumlah_botol, $harga_beli_satuan, $total_item, '$keterangan', '$batch_id')");
             $success_count++;
