@@ -1,4 +1,5 @@
 <?php
+// includes/layout_header.php;
 require_once 'config.php';
 $root_path = $root ?? '';
 ?>

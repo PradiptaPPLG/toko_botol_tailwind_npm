@@ -91,7 +91,7 @@ $root_path = $root ?? '';
                 <li>
                     <button onclick="toggleDropdown('stok')"
                             class="w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
-                                   <?= in_array(basename($_SERVER['PHP_SELF']), ['stok_masuk.php', 'stok_keluar.php', 'stok_opname.php']) ? 'bg-blue-700 shadow-lg' : '' ?>">
+                                   <?= in_array(basename($_SERVER['PHP_SELF']), ['stok_masuk.php', 'stok_transfer.php', 'stok_rusak.php', 'stok_opname.php']) ? 'bg-blue-700 shadow-lg' : '' ?>">
                         <div class="flex items-center">
                             <span class="text-xl mr-3">📦</span>
                             <span>Stok</span>
@@ -107,10 +107,17 @@ $root_path = $root ?? '';
                             </a>
                         </li>
                         <li>
-                            <a href="<?= $root_path ?>modules/gudang/stok_keluar.php"
+                            <a href="<?= $root_path ?>modules/gudang/stok_transfer.php"
                                class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
-                      <?= basename($_SERVER['PHP_SELF']) == 'stok_keluar.php' ? 'bg-blue-700' : '' ?>">
-                                📤 Stok Keluar
+                      <?= basename($_SERVER['PHP_SELF']) == 'stok_transfer.php' ? 'bg-blue-700' : '' ?>">
+                                🔄 Stok Transfer
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= $root_path ?>modules/gudang/stok_rusak.php"
+                               class="block p-2 pl-4 rounded-lg text-sm hover:bg-blue-700 transition-all
+                      <?= basename($_SERVER['PHP_SELF']) == 'stok_rusak.php' ? 'bg-blue-700' : '' ?>">
+                                🔴 Stok Rusak
                             </a>
                         </li>
                         <li>

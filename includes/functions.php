@@ -16,6 +16,11 @@ function get_produk_by_id($id) {
     return count($result) > 0 ? $result[0] : null;
 }
 
+function get_stok_gudang($produk_id) {
+    $result = query("SELECT stok_gudang FROM produk WHERE id = $produk_id");
+    return count($result) > 0 ? $result[0]['stok_gudang'] : 0;
+}
+
 function rupiah($angka): string
 {
     return 'Rp ' . number_format($angka, 2, ',', '.');
