@@ -13,8 +13,6 @@ class CreateTransaksiDetailTable extends Migration
             $s->integer('jumlah');
             $s->string('satuan', 20)->default('botol');
             $s->integer('harga_satuan');
-            $s->integerNullable('harga_tawar');
-            $s->integerNullable('selisih');
             $s->integer('subtotal');
             $s->timestamp('created_at');
             $s->index('transaksi_header_id');

@@ -110,13 +110,13 @@ $transaksi_terbaru = query("
             $kerugian = query("
                 SELECT tanggal, SUM(nominal) as nominal FROM (
                     SELECT DATE(tanggal) as tanggal, 
-                           SUM(selisih * (SELECT harga_jual FROM produk WHERE id = produk_id)) as nominal
+                           SUM(selisih * COALESCE((SELECT AVG(harga_satuan) FROM transaksi_detail WHERE produk_id = stock_opname.produk_id), 0)) as nominal
                     FROM stock_opname 
                     WHERE status = 'HILANG' AND tanggal >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
                     GROUP BY DATE(tanggal)
                     UNION ALL
                     SELECT DATE(created_at) as tanggal,
-                           SUM(jumlah * (SELECT harga_jual FROM produk WHERE id = produk_id)) as nominal
+                           SUM(jumlah * COALESCE((SELECT AVG(harga_satuan) FROM transaksi_detail WHERE produk_id = stok_keluar.produk_id), 0)) as nominal
                     FROM stok_keluar
                     WHERE kondisi = 'rusak' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
                     GROUP BY DATE(created_at)
@@ -152,7 +152,7 @@ $transaksi_terbaru = query("
                                 'HILANG (SO)' as tipe,
                                 p.nama_produk,
                                 so.selisih as jumlah,
-                                (so.selisih * p.harga_jual) as nominal,
+                                (so.selisih * COALESCE((SELECT AVG(harga_satuan) FROM transaksi_detail WHERE produk_id = so.produk_id), 0)) as nominal,
                                 so.tanggal as tgl
                             FROM stock_opname so
                             JOIN produk p ON so.produk_id = p.id
@@ -164,7 +164,7 @@ $transaksi_terbaru = query("
                                 'RUSAK' as tipe,
                                 p.nama_produk,
                                 sk.jumlah,
-                                (sk.jumlah * p.harga_jual) as nominal,
+                                (sk.jumlah * COALESCE((SELECT AVG(harga_satuan) FROM transaksi_detail WHERE produk_id = sk.produk_id), 0)) as nominal,
                                 sk.created_at as tgl
                             FROM stok_keluar sk
                             JOIN produk p ON sk.produk_id = p.id
@@ -223,13 +223,13 @@ $transaksi_terbaru = query("
             // Hitung Kerugian (Rusak & Hilang) Bulan Ini
             $kerugian_bulan_ini = query("
                 SELECT SUM(nominal) as total FROM (
-                    SELECT SUM(selisih * (SELECT harga_jual FROM produk WHERE id = produk_id)) as nominal
+                    SELECT SUM(selisih * COALESCE((SELECT AVG(harga_satuan) FROM transaksi_detail WHERE produk_id = stock_opname.produk_id), 0)) as nominal
                     FROM stock_opname 
                     WHERE status = 'HILANG' 
                       AND MONTH(tanggal) = MONTH(CURDATE()) 
                       AND YEAR(tanggal) = YEAR(CURDATE())
                     UNION ALL
-                    SELECT SUM(jumlah * (SELECT harga_jual FROM produk WHERE id = produk_id)) as nominal
+                    SELECT SUM(jumlah * COALESCE((SELECT AVG(harga_satuan) FROM transaksi_detail WHERE produk_id = stok_keluar.produk_id), 0)) as nominal
                     FROM stok_keluar
                     WHERE kondisi = 'rusak' 
                       AND MONTH(created_at) = MONTH(CURDATE()) 

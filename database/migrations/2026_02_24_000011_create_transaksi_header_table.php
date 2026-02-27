@@ -13,8 +13,6 @@ class CreateTransaksiHeaderTable extends Migration
             $s->enum('tipe', ['pembeli', 'penjual'])->default('pembeli');
             $s->integerNullable('total_items')->default(0);
             $s->integer('total_harga')->default(0);
-            $s->integerNullable('total_bayar');
-            $s->integerNullable('kembalian');
             $s->timestamp('created_at');
             $s->unique('no_invoice');
             $s->index('cabang_id');
