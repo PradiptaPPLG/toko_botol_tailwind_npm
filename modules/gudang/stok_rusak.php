@@ -7,6 +7,7 @@ if (!is_login()) redirect('../../login.php');
 // Proses stok rusak
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['batch_stok_rusak'])) {
     $cart_items = json_decode($_POST['cart_data'], true);
+    $cabang_asal = intval($_POST['cabang_asal']);
     $keterangan = escape_string($_POST['keterangan']);
 
     if (!empty($cart_items)) {
@@ -22,21 +23,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['batch_stok_rusak'])) 
             // Convert to botol for DB
             $jumlah = ($satuan === 'dus') ? $jumlah_input * 12 : $jumlah_input;
 
-            // Check stok at Pusat (cabang_id = 1)
-            $stok_check = query("SELECT stok FROM stok_cabang WHERE produk_id = $produk_id AND cabang_id = 1");
-            $stok_pusat = count($stok_check) > 0 ? $stok_check[0]['stok'] : 0;
+            // Check stok at selected cabang
+            $stok_check = query("SELECT stok FROM stok_cabang WHERE produk_id = $produk_id AND cabang_id = $cabang_asal");
+            $stok_asal = count($stok_check) > 0 ? $stok_check[0]['stok'] : 0;
 
-            if ($stok_pusat >= $jumlah) {
-                // Deduct from Pusat
-                execute("UPDATE stok_cabang SET stok = stok - $jumlah WHERE produk_id = $produk_id AND cabang_id = 1");
+            if ($stok_asal >= $jumlah) {
+                // Deduct from cabang_asal
+                execute("UPDATE stok_cabang SET stok = stok - $jumlah WHERE produk_id = $produk_id AND cabang_id = $cabang_asal");
 
                 // Record in stok_keluar
                 $sql = "INSERT INTO stok_keluar (produk_id, jumlah, kondisi, cabang_asal, cabang_tujuan, keterangan, batch_id)
-                        VALUES ($produk_id, $jumlah, 'rusak', 1, NULL, '$keterangan', '$batch_id')";
+                        VALUES ($produk_id, $jumlah, 'rusak', $cabang_asal, NULL, '$keterangan', '$batch_id')";
                 execute($sql);
                 $success_count++;
             } else {
-                $errors[] = $item['nama'] . " - Stok tidak cukup di Pusat (tersedia: $stok_pusat btl)";
+                $errors[] = $item['nama'] . " - Stok tidak cukup di cabang terpilih (tersedia: $stok_asal btl)";
             }
         }
 
@@ -54,18 +55,7 @@ include '../../includes/layout_header.php';
 include '../../includes/layout_sidebar.php';
 
 $produk = get_produk();
-
-// Get stok Pusat (cabang_id = 1) for each product
-$stok_pusat_map = [];
-$stok_pusat_query = query("SELECT produk_id, stok FROM stok_cabang WHERE cabang_id = 1");
-foreach ($stok_pusat_query as $row) {
-    $stok_pusat_map[$row['produk_id']] = intval($row['stok']);
-}
-
-// Add stok_pusat to each product
-foreach ($produk as &$p) {
-    $p['stok_pusat'] = $stok_pusat_map[$p['id']] ?? 0;
-}
+$cabang = get_cabang();
 ?>
 
     <style>
@@ -84,7 +74,6 @@ foreach ($produk as &$p) {
                 <span class="mr-3">🔴</span> STOK RUSAK
             </h1>
             <p class="text-sm text-gray-600 mt-1">👤 <?= $_SESSION['user']['nama'] ?></p>
-            <p class="text-xs text-gray-500 mt-1">💡 Stok rusak akan dikurangkan dari Gudang Pusat</p>
         </div>
 
         <?php if (isset($success)): ?>
@@ -98,26 +87,28 @@ foreach ($produk as &$p) {
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-lg shadow p-4">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold">🥤 Pilih Produk</h2>
-                        <div class="flex bg-gray-100 rounded-lg p-1">
-                            <button onclick="setGlobalUnit('botol')" id="unit-botol" class="px-3 py-1 rounded text-xs font-semibold bg-white text-red-600">Botol</button>
-                            <button onclick="setGlobalUnit('dus')" id="unit-dus" class="px-3 py-1 rounded text-xs font-semibold text-gray-500">Dus</button>
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <h2 class="text-xl font-bold">🥤 Pilih Produk</h2>
+                            <div class="flex bg-gray-100 rounded-lg p-1">
+                                <button onclick="setGlobalUnit('botol')" id="unit-botol" class="px-3 py-1 rounded text-xs font-semibold bg-white text-red-600">Botol</button>
+                                <button onclick="setGlobalUnit('dus')" id="unit-dus" class="px-3 py-1 rounded text-xs font-semibold text-gray-500">Dus</button>
+                            </div>
+                        </div>
+
+                        <!-- Cabang Selection -->
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-2 text-gray-700">📍 Cabang:</label>
+                            <select id="select-cabang-asal" onchange="loadProdukByCabang()" class="w-full border-2 border-red-300 rounded-lg p-2 text-sm font-semibold bg-red-50">
+                                <?php foreach ($cabang as $c): ?>
+                                    <option value="<?= $c['id'] ?>"><?= $c['nama_cabang'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-                        <?php foreach ($produk as $p): ?>
-                            <?php $disabled = $p['stok_pusat'] <= 0 ? 'opacity-50 cursor-not-allowed' : ''; ?>
-                            <div class="product-card bg-white border-2 border-gray-200 rounded-lg p-3 <?= $disabled ?>"
-                                 onclick="<?= $p['stok_pusat'] > 0 ? 'addToCart('.$p['id'].', \''.htmlspecialchars($p['nama_produk']).'\', '.$p['stok_pusat'].')' : '' ?>">
-                                <div class="bg-linear-to-br from-red-50 to-red-100 rounded-lg h-20 flex items-center justify-center mb-2">
-                                    <span class="text-3xl">🥤</span>
-                                </div>
-                                <h3 class="font-bold text-sm mb-1 truncate"><?= $p['nama_produk'] ?></h3>
-                                <p class="text-xs <?= $p['stok_pusat'] > 0 ? 'text-green-600' : 'text-red-600' ?>">Stok Pusat: <?= number_format($p['stok_pusat'], 0, ',', '.') ?> btl</p>
-                            </div>
-                        <?php endforeach; ?>
+                    <div id="produk-list" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                        <!-- Products will be loaded by JavaScript -->
                     </div>
                 </div>
             </div>
@@ -138,6 +129,7 @@ foreach ($produk as &$p) {
                         <form method="POST" id="form-rusak">
                             <input type="hidden" name="batch_stok_rusak" value="1">
                             <input type="hidden" name="cart_data" id="cart-data">
+                            <input type="hidden" name="cabang_asal" id="form-cabang-asal">
 
                             <div class="mb-3">
                                 <label class="block text-sm font-medium mb-2">Keterangan</label>
@@ -155,6 +147,52 @@ foreach ($produk as &$p) {
     <script>
         let cart = [];
         let globalUnit = 'botol';
+
+        // Product data
+        const produkData = <?= json_encode($produk) ?>;
+
+        // Stok cabang data
+        let stokCabangData = {};
+
+        // Load stok cabang data
+        async function loadStokCabang() {
+            try {
+                const response = await fetch('../../api/get_stok_cabang.php');
+                const data = await response.json();
+                stokCabangData = data;
+                loadProdukByCabang();
+            } catch (error) {
+                console.error('Error loading stok cabang:', error);
+            }
+        }
+
+        // Load products based on selected cabang_asal
+        function loadProdukByCabang() {
+            const cabangId = parseInt(document.getElementById('select-cabang-asal').value);
+            const produkList = document.getElementById('produk-list');
+
+            let html = '';
+            produkData.forEach(p => {
+                const stokKey = `${p.id}_${cabangId}`;
+                const stok = stokCabangData[stokKey] || 0;
+                const disabled = stok <= 0 ? 'opacity-50 cursor-not-allowed' : '';
+                const onclick = stok > 0 ? `addToCart(${p.id}, '${p.nama_produk.replace(/'/g, "\\'\'")}', ${stok})` : '';
+                const stokColor = stok > 0 ? 'text-green-600' : 'text-red-600';
+
+                html += `
+                    <div class="product-card bg-white border-2 border-gray-200 rounded-lg p-3 ${disabled}"
+                         onclick="${onclick}">
+                        <div class="bg-linear-to-br from-red-50 to-red-100 rounded-lg h-20 flex items-center justify-center mb-2">
+                            <span class="text-3xl">🥤</span>
+                        </div>
+                        <h3 class="font-bold text-sm mb-1 truncate">${p.nama_produk}</h3>
+                        <p class="text-xs ${stokColor}">Stok: ${stok.toLocaleString('id-ID')} btl</p>
+                    </div>
+                `;
+            });
+
+            produkList.innerHTML = html || '<p class="col-span-full text-center text-gray-400 py-8">Tidak ada produk</p>';
+        }
 
         function setGlobalUnit(unit) {
             globalUnit = unit;
@@ -263,9 +301,12 @@ foreach ($produk as &$p) {
 
         document.getElementById('form-rusak').addEventListener('submit', function(e) {
             if (!cart.length) { e.preventDefault(); alert('Keranjang kosong!'); return; }
+            document.getElementById('form-cabang-asal').value = document.getElementById('select-cabang-asal').value;
             document.getElementById('cart-data').value = JSON.stringify(cart);
         });
 
+        // Initialize
+        loadStokCabang();
         renderCart();
     </script>
 

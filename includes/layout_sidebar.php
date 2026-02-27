@@ -59,7 +59,7 @@ $root_path = $root ?? '';
                     <li>
                         <button onclick="toggleDropdown('gudang')"
                                 class="w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
-                   <?= (str_contains($_SERVER['REQUEST_URI'], '/gudang/') || basename($_SERVER['PHP_SELF']) === 'info_cabang.php' || basename($_SERVER['PHP_SELF']) === 'total_stok.php') ? 'bg-blue-700 shadow-lg' : '' ?>">
+                   <?= (basename($_SERVER['PHP_SELF']) === 'info_cabang.php' || basename($_SERVER['PHP_SELF']) === 'total_stok.php') ? 'bg-blue-700 shadow-lg' : '' ?>">
                             <div class="flex items-center">
                                 <span class="text-xl mr-3">🏚️</span>
                                 <span>Gudang</span>
@@ -142,7 +142,7 @@ $root_path = $root ?? '';
                 <li>
                     <button onclick="toggleDropdown('laporan')"
                             class="w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:shadow-lg
-                                   <?= str_contains($_SERVER['REQUEST_URI'], '/laporan') ? 'bg-blue-700 shadow-lg' : '' ?>">
+                                   <?= in_array(basename($_SERVER['PHP_SELF']), ['laporan_penjualan.php', 'laporan_pembelian.php', 'laporan_pengeluaran.php', 'rekap.php']) ? 'bg-blue-700 shadow-lg' : '' ?>">
                         <div class="flex items-center">
                             <span class="text-xl mr-3">📈</span>
                             <span>Laporan</span>
@@ -267,15 +267,17 @@ const currentPath = window.location.pathname;
     let isMatch = false;
 
     if (id === 'gudang') {
-        isMatch = currentPath.includes('/gudang/')
-            || currentPath.includes('/info_cabang.php')
-            || currentPath.includes('/total_stok.php');
+        isMatch = (currentPath.includes('/admin/') && (currentPath.includes('info_cabang.php') || currentPath.includes('total_stok.php')));
     } else if (id === 'stok') {
         isMatch = currentPath.includes('stok_masuk.php')
-            || currentPath.includes('stok_keluar.php')
+            || currentPath.includes('stok_transfer.php')
+            || currentPath.includes('stok_rusak.php')
             || currentPath.includes('stok_opname.php');
     } else if (id === 'laporan') {
-        isMatch = currentPath.includes('/laporan');
+        isMatch = currentPath.includes('laporan_penjualan.php')
+            || currentPath.includes('laporan_pembelian.php')
+            || currentPath.includes('laporan_pengeluaran.php')
+            || currentPath.includes('rekap.php');
     }
 
     if (dropdown && isMatch) {

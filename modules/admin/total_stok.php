@@ -12,6 +12,7 @@ $stok_total = query("
     FROM produk p
     LEFT JOIN stok_cabang sc ON p.id = sc.produk_id
     GROUP BY p.id
+    ORDER BY p.nama_produk ASC
 ");
 
 $grand_total_stok = array_sum(array_column($stok_total, 'total_stok'));

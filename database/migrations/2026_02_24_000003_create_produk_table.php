@@ -10,8 +10,6 @@ class CreateProdukTable extends Migration
             $s->string('nama_produk', 100);
             $s->string('satuan', 20)->default('botol');
             $s->integer('harga_beli')->default(0);
-            $s->integer('harga_jual')->default(0);
-            $s->integer('harga_dus')->default(0);
             $s->integer('stok_gudang')->default(0);
             $s->enum('status', ['active', 'deleted'])->default('active');
             $s->datetimeNullable('deleted_at');

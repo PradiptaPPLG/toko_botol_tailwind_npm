@@ -14,7 +14,6 @@ class ProdukSeeder extends Seeder
                 'harga_beli'   => 1500,
                 'harga_jual'   => 3000,
                 'harga_dus'    => 72000,
-                'stok_gudang'  => 100,
                 'status'       => 'active',
             ],
             [
@@ -24,7 +23,6 @@ class ProdukSeeder extends Seeder
                 'harga_beli'   => 800,
                 'harga_jual'   => 2000,
                 'harga_dus'    => 48000,
-                'stok_gudang'  => 100,
                 'status'       => 'active',
             ],
             [
@@ -34,7 +32,6 @@ class ProdukSeeder extends Seeder
                 'harga_beli'   => 2500,
                 'harga_jual'   => 5000,
                 'harga_dus'    => 120000,
-                'stok_gudang'  => 50,
                 'status'       => 'active',
             ],
         ]);
