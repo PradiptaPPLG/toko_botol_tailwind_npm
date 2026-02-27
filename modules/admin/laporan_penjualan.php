@@ -11,7 +11,7 @@ include '../../includes/modal_confirm.php';
 $tanggal_mulai = $_GET['tanggal_mulai'] ?? date('Y-m-d');
 $tanggal_akhir = $_GET['tanggal_akhir'] ?? date('Y-m-d');
 $cabang_id = $_GET['cabang'] ?? 0;
-$tipe_filter = $_GET['tipe'] ?? 'semua'; // semua, pembeli, penjual
+
 
 $cabang_list = get_cabang();
 
@@ -55,31 +55,27 @@ if ($use_new_structure) {
         JOIN cabang c ON th.cabang_id = c.id
         WHERE DATE(th.created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'
         " . ($cabang_id > 0 ? " AND th.cabang_id = $cabang_id" : "") . "
-        " . ($tipe_filter != 'semua' ? " AND th.tipe = '$tipe_filter'" : "") . "
         ORDER BY th.created_at DESC
     ");
 
 } else {
     // OLD STRUCTURE Fallback (Simplified as this is legacy)
-    $rekap_pembeli = query("SELECT SUM(total_harga) as total, COUNT(DISTINCT no_invoice) as count FROM transaksi WHERE tipe='pembeli' AND DATE(created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'")[0];
-    $rekap_penjual = query("SELECT SUM(total_harga) as total FROM transaksi WHERE tipe='penjual' AND DATE(created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'")[0];
+    $rekap_pembeli = query("SELECT SUM(total_harga) as total, COUNT(DISTINCT no_invoice) as count FROM transaksi WHERE DATE(created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'")[0];
     
     $total_penjualan = $rekap_pembeli['total'] ?? 0;
-    $total_pembelian = $rekap_penjual['total'] ?? 0;
     $total_transaksi = $rekap_pembeli['count'] ?? 0;
     $rekap_cabang = []; // skip per-branch rekap for old structure for brevity
 
     $transaksi_headers = query("
         SELECT
-            no_invoice, cabang_id, nama_kasir, tipe,
+            no_invoice, cabang_id, nama_kasir,
             MIN(created_at) as created_at,
             SUM(total_harga) as total_harga,
             (SELECT nama_cabang FROM cabang WHERE id = t.cabang_id) as nama_cabang
         FROM transaksi t
         WHERE DATE(created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'
         " . ($cabang_id > 0 ? " AND cabang_id = $cabang_id" : "") . "
-        " . ($tipe_filter != 'semua' ? " AND tipe = '$tipe_filter'" : "") . "
-        GROUP BY no_invoice, cabang_id, nama_kasir, tipe
+        GROUP BY no_invoice, cabang_id, nama_kasir
         ORDER BY created_at DESC
     ");
 }
@@ -117,14 +113,7 @@ $transaksi_page = array_slice($transaksi_headers, $offset, $limit);
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="flex-1 min-w-[150px]">
-                <label class="block text-gray-700 font-medium mb-1 text-xs uppercase tracking-wider">📋 Tipe</label>
-                <select name="tipe" class="w-full border rounded-lg p-2 text-sm">
-                    <option value="semua" <?= $tipe_filter == 'semua' ? 'selected' : '' ?>>Semua</option>
-                    <option value="pembeli" <?= $tipe_filter == 'pembeli' ? 'selected' : '' ?>>Penjualan dari Pembeli</option>
-                    <option value="penjual" <?= $tipe_filter == 'penjual' ? 'selected' : '' ?>>Penjualan dari Penjual</option>
-                </select>
-            </div>
+
             <div class="w-full md:w-auto">
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg text-sm">🔍 CARI</button>
             </div>
@@ -182,7 +171,6 @@ $transaksi_page = array_slice($transaksi_headers, $offset, $limit);
                 <thead class="bg-gray-100">
                     <tr>
                         <th class="p-3 text-left">Waktu</th>
-                        <th class="p-3 text-left">Tipe</th>
                         <th class="p-3 text-left">Invoice</th>
                         <th class="p-3 text-left">Cabang</th>
                         <th class="p-3 text-left">Total</th>
@@ -197,16 +185,9 @@ $transaksi_page = array_slice($transaksi_headers, $offset, $limit);
                                 <?= date('d/m/y', strtotime($t['created_at'])) ?> 
                                 <span class="text-gray-400"><?= date('H:i', strtotime($t['created_at'])) ?></span>
                             </td>
-                            <td class="p-3">
-                                <?php if ($t['tipe'] == 'pembeli'): ?>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700">🛒 PEMBELI</span>
-                                <?php else: ?>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700">🤝 PENJUAL</span>
-                                <?php endif; ?>
-                            </td>
                             <td class="p-3 font-mono text-sm font-bold text-blue-600"><?= $t['no_invoice'] ?></td>
                             <td class="p-3 text-sm"><?= $t['nama_cabang'] ?></td>
-                            <td class="p-3 font-bold <?= $t['tipe'] == 'pembeli' ? 'text-indigo-700' : 'text-purple-700' ?>"><?= rupiah($t['total_harga']) ?></td>
+                            <td class="p-3 font-bold text-indigo-700"><?= rupiah($t['total_harga']) ?></td>
                             <td class="p-3 text-center">
                                 <button onclick="event.stopPropagation(); showTransactionDetail('<?= $t['no_invoice'] ?>')"
                                         class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">📄 Detail</button>
@@ -214,7 +195,7 @@ $transaksi_page = array_slice($transaksi_headers, $offset, $limit);
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr><td colspan="6" class="p-8 text-center text-gray-500">Tidak ada transaksi ditemukan</td></tr>
+                        <tr><td colspan="5" class="p-8 text-center text-gray-500">Tidak ada transaksi ditemukan</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -225,7 +206,7 @@ $transaksi_page = array_slice($transaksi_headers, $offset, $limit);
         <div class="bg-gray-50 p-4 flex justify-center">
             <div class="flex space-x-1">
                 <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                <a href="?tanggal_mulai=<?= $tanggal_mulai ?>&tanggal_akhir=<?= $tanggal_akhir ?>&cabang=<?= $cabang_id ?>&tipe=<?= $tipe_filter ?>&page=<?= $i ?>"
+                <a href="?tanggal_mulai=<?= $tanggal_mulai ?>&tanggal_akhir=<?= $tanggal_akhir ?>&cabang=<?= $cabang_id ?>&page=<?= $i ?>"
                    class="px-3 py-1 text-sm <?= $i == $page ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300' ?> rounded-md"><?= $i ?></a>
                 <?php endfor; ?>
             </div>

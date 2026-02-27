@@ -10,11 +10,19 @@ include '../../includes/modal_confirm.php';
 
 $tanggal_mulai = $_GET['tanggal_mulai'] ?? date('Y-m-01');
 $tanggal_akhir = $_GET['tanggal_akhir'] ?? date('Y-m-d');
+$filter_keterangan = $_GET['keterangan'] ?? '';
+
+$sql_keterangan = '';
+if ($filter_keterangan !== '') {
+    $filter_keterangan_escaped = escape_string($filter_keterangan);
+    $sql_keterangan = " AND keterangan LIKE '%$filter_keterangan_escaped%'";
+}
 
 $pengeluaran = query("
     SELECT *
     FROM pengeluaran
     WHERE DATE(created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'
+    $sql_keterangan
     ORDER BY created_at DESC
 ");
 
@@ -35,6 +43,10 @@ $total_pengeluaran = array_sum(array_column($pengeluaran, 'nominal'));
             <div class="flex-1 min-w-[140px]">
                 <label class="block text-gray-700 font-medium mb-1 text-xs uppercase tracking-wider">📅 Akhir</label>
                 <input type="date" name="tanggal_akhir" value="<?= $tanggal_akhir ?>" class="w-full border rounded-lg p-2 text-sm">
+            </div>
+            <div class="flex-1 min-w-[140px]">
+                <label class="block text-gray-700 font-medium mb-1 text-xs uppercase tracking-wider">🔎 Keterangan</label>
+                <input type="text" name="keterangan" value="<?= htmlspecialchars($filter_keterangan) ?>" class="w-full border rounded-lg p-2 text-sm" placeholder="Cari keterangan...">
             </div>
             <div class="w-full md:w-auto">
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg text-sm">🔍 CARI</button>
