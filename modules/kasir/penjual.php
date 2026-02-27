@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_transaksi'])) 
                 'cabang_id' => $cabang_id,
                 'session_kasir_id' => is_admin() ? null : $_SESSION['user']['id'],
                 'nama_kasir' => $nama_kasir,
-                'tipe' => 'penjual',
+
                 'total_harga' => $total_transaction
             ];
 
@@ -82,7 +82,7 @@ $rekap = query("
         COUNT(*) as total_transaksi,
         SUM(total_harga) as total_penjualan
     FROM transaksi_header 
-    WHERE cabang_id = $cabang_id AND tipe = 'penjual' AND DATE(created_at) = CURDATE()
+    WHERE cabang_id = $cabang_id AND DATE(created_at) = CURDATE()
 ")[0];
 ?>
 
@@ -139,7 +139,7 @@ $rekap = query("
                             $is_empty = $stok <= 0;
                         ?>
                         <div class="product-card bg-white border-2 border-gray-200 rounded-lg p-3 <?= $is_empty ? 'opacity-40 grayscale pointer-events-none' : '' ?>"
-                             onclick="handleAddToCart(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>', <?= $stok ?>)">
+                             onclick="handleAddToCart(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>', <?= $stok ?>, <?= $p['harga_beli'] ?? 0 ?>)">
                             <div class="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg h-20 flex items-center justify-center mb-2">
                                 <span class="text-3xl">🥤</span>
                             </div>
@@ -200,10 +200,11 @@ function setGlobalUnit(unit) {
     }
 }
 
-function handleAddToCart(id, nama, stok) {
+function handleAddToCart(id, nama, stok, hargaBeli) {
     const satuan = globalUnit;
     const defaultHarga = 0;
-    openHargaTawarModal(nama + ' (' + satuan.toUpperCase() + ')', defaultHarga, function(hargaTawar) {
+    const hargaBeliRef = satuan === 'dus' ? hargaBeli * 12 : hargaBeli;
+    openHargaTawarModal(nama + ' (' + satuan.toUpperCase() + ')', defaultHarga, hargaBeliRef, function(hargaTawar) {
         if (hargaTawar > 0) {
             const existing = cart.find(i => i.produk_id === id && i.satuan === satuan);
             if(existing) {
@@ -217,7 +218,7 @@ function handleAddToCart(id, nama, stok) {
                 if(initBotol > stok) { alert('Stok tidak cukup! Sisa: ' + stok + ' botol'); return; }
                 cart.push({
                     produk_id: id, nama, 
-                    jumlah: 1, satuan: satuan, stok, harga_tawar: hargaTawar
+                    jumlah: 1, satuan: satuan, stok, harga_tawar: hargaTawar, harga_beli: hargaBeli
                 });
             }
             renderCart();
@@ -227,7 +228,8 @@ function handleAddToCart(id, nama, stok) {
 
 function editHargaTawar(index) {
     const item = cart[index];
-    openHargaTawarModal(item.nama + ' (' + item.satuan.toUpperCase() + ')', item.harga_tawar, function(harga) {
+    const hargaBeliRef = item.satuan === 'dus' ? item.harga_beli * 12 : item.harga_beli;
+    openHargaTawarModal(item.nama + ' (' + item.satuan.toUpperCase() + ')', item.harga_tawar, hargaBeliRef, function(harga) {
         if (harga > 0) {
             cart[index].harga_tawar = harga;
             renderCart();
@@ -318,13 +320,15 @@ function renderCart() {
     btn.disabled = false;
 }
 
-function openHargaTawarModal(nama, defaultHarga, callback) {
+function openHargaTawarModal(nama, defaultHarga, hargaBeliRef, callback) {
     const modal = document.getElementById('hargaTawarModal');
     const input = document.getElementById('htawar-modal-input');
     const confirmBtn = document.getElementById('htawar-modal-confirm');
+    const refEl = document.getElementById('htawar-modal-ref');
     
     document.getElementById('htawar-modal-nama').textContent = nama;
     input.value = defaultHarga;
+    refEl.textContent = formatRp(hargaBeliRef);
     modal.classList.remove('hidden');
     input.focus();
     input.select();
@@ -365,8 +369,13 @@ renderCart();
         <h3 class="text-lg font-bold text-gray-800 mb-1">💰 Input Harga</h3>
         <p class="text-sm text-gray-500 mb-4" id="htawar-modal-nama"></p>
         
+        <div class="mb-3 bg-gray-100 rounded-lg p-3">
+            <label class="block text-xs font-medium text-gray-500 mb-1">📋 Harga Beli (Referensi)</label>
+            <p id="htawar-modal-ref" class="text-lg font-bold text-gray-700">Rp 0</p>
+        </div>
+
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Harga (Rp)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Harga Jual (Rp)</label>
             <input type="number" id="htawar-modal-input" placeholder="Contoh: 25000"
                    class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-500">
         </div>

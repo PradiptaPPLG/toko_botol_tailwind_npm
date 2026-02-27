@@ -94,14 +94,14 @@ function save_transaction(array $header_data, array $items): array
         $cabang_id = intval($header_data['cabang_id']);
         $session_kasir_id = isset($header_data['session_kasir_id']) && $header_data['session_kasir_id'] ? intval($header_data['session_kasir_id']) : 'NULL';
         $nama_kasir = escape_string($header_data['nama_kasir']);
-        $tipe = $header_data['tipe'];
+
         $total_items = count($items);
         $total_harga = (float)($header_data['total_harga'] ?? 0);
         $total_bayar = isset($header_data['total_bayar']) ? (float)$header_data['total_bayar'] : 'NULL';
         $kembalian = isset($header_data['kembalian']) ? (float)$header_data['kembalian'] : 'NULL';
 
-        $sql_header = "INSERT INTO transaksi_header (no_invoice, cabang_id, session_kasir_id, nama_kasir, tipe, total_items, total_harga, total_bayar, kembalian)
-                      VALUES ('$no_invoice', $cabang_id, $session_kasir_id, '$nama_kasir', '$tipe', $total_items, $total_harga, $total_bayar, $kembalian)";
+        $sql_header = "INSERT INTO transaksi_header (no_invoice, cabang_id, session_kasir_id, nama_kasir, total_items, total_harga, total_bayar, kembalian)
+                      VALUES ('$no_invoice', $cabang_id, $session_kasir_id, '$nama_kasir', $total_items, $total_harga, $total_bayar, $kembalian)";
 
         if (!execute($sql_header)) {
             throw new Exception('Failed to insert transaction header');

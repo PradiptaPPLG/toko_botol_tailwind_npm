@@ -52,7 +52,7 @@ if ($use_new_structure) {
         'no_invoice' => $first_item['no_invoice'],
         'cabang_id' => $first_item['cabang_id'],
         'nama_kasir' => $first_item['nama_kasir'],
-        'tipe' => $first_item['tipe'],
+
         'total_items' => count($items),
         'total_harga' => array_sum(array_column($items, 'total_harga')),
         'created_at' => $first_item['created_at']
@@ -86,12 +86,7 @@ if ($use_new_structure) {
             <span>Kasir:</span>
             <span><?= $header['nama_kasir'] ?></span>
         </div>
-        <div class="flex justify-between">
-            <span>Tipe:</span>
-            <span class="font-semibold <?= $header['tipe'] == 'pembeli' ? 'text-blue-600' : 'text-green-600' ?>">
-                <?= strtoupper($header['tipe']) ?>
-            </span>
-        </div>
+
     </div>
 
     <!-- Items -->
@@ -110,14 +105,7 @@ if ($use_new_structure) {
                 <tr class="border-b">
                     <td class="py-2">
                         <div class="font-semibold"><?= $item['nama_produk'] ?></div>
-                        <?php if (isset($item['harga_tawar']) && $item['harga_tawar']): ?>
-                        <div class="text-xs text-gray-600 no-print">
-                            Harga Tawar: <?= rupiah($item['harga_tawar']) ?>
-                            <?php if (isset($item['selisih'])): ?>
-                            <span class="text-red-600 no-print">(Selisih: <?= rupiah($item['selisih']) ?>)</span>
-                            <?php endif; ?>
-                        </div>
-                        <?php endif; ?>
+
                     </td>
                     <td class="py-2 text-center">
                         <?= number_format($item['jumlah'], 0, ',', '.') ?> <?= $item['satuan'] ?>

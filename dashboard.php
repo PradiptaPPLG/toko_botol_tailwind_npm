@@ -203,12 +203,11 @@ $transaksi_terbaru = query("
                 <span class="mr-2">📈</span> Keuntungan Bulan Ini
             </h2>
             <?php
-            // Hitung Penjualan Bulan Ini (Tipe Pembeli)
+            // Hitung Penjualan Bulan Ini
             $penjualan_bulan_ini = query("
                 SELECT SUM(total_harga) as total 
                 FROM transaksi_header 
-                WHERE tipe = 'pembeli' 
-                  AND MONTH(created_at) = MONTH(CURDATE()) 
+                WHERE MONTH(created_at) = MONTH(CURDATE()) 
                   AND YEAR(created_at) = YEAR(CURDATE())
             ")[0]['total'] ?? 0;
 
