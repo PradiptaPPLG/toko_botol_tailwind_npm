@@ -21,7 +21,7 @@ $sales_data = query("
         td.nama_produk,
         p.harga_beli,
         th.cabang_id,
-        SUM(td.jumlah) as total_qty,
+        SUM(CASE WHEN td.satuan = 'dus' THEN td.jumlah * COALESCE(p.botol_perdus, 12) ELSE td.jumlah END) as total_qty,
         SUM(td.subtotal) as total_omzet
     FROM transaksi_detail td
     JOIN transaksi_header th ON td.transaksi_header_id = th.id
@@ -81,6 +81,7 @@ $pengeluaran = query("
     SELECT SUM(nominal) as total 
     FROM pengeluaran 
     WHERE DATE(created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'
+    AND deleted_at IS NULL
 ")[0]['total'] ?? 0;
 
 $kerugian_detail = query("

@@ -11,11 +11,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['tambah_produk'])) {
         $kode_produk = 'BTL' . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
         $nama_produk = escape_string($_POST['nama_produk']);
+        $botol_perdus = intval($_POST['botol_perdus'] ?? 12);
+        if ($botol_perdus < 1) $botol_perdus = 12;
         $satuan = 'botol';
-        $stok_gudang = 0; // Always 0 for new products
+        $stok_gudang = 0;
  
-         $sql = "INSERT INTO produk (kode_produk, nama_produk, satuan, harga_beli, stok_gudang)
-                 VALUES ('$kode_produk', '$nama_produk', '$satuan', 0, $stok_gudang)";
+         $sql = "INSERT INTO produk (kode_produk, nama_produk, satuan, botol_perdus, harga_beli, stok_gudang)
+                 VALUES ('$kode_produk', '$nama_produk', '$satuan', $botol_perdus, 0, $stok_gudang)";
 
         if (execute($sql)) {
             $produk_id = last_insert_id();
@@ -34,8 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['edit_produk'])) {
         $id = intval($_POST['id']);
         $nama_produk = escape_string($_POST['nama_produk']);
+        $botol_perdus = intval($_POST['botol_perdus'] ?? 12);
+        if ($botol_perdus < 1) $botol_perdus = 12;
 
-        $sql = "UPDATE produk SET nama_produk='$nama_produk' WHERE id=$id";
+        $sql = "UPDATE produk SET nama_produk='$nama_produk', botol_perdus=$botol_perdus WHERE id=$id";
 
         if (execute($sql)) {
             $success = "Produk berhasil diupdate!";
@@ -104,10 +108,18 @@ include '../../includes/modal_confirm.php';
             
             <form method="POST" class="space-y-5">
                 <div>
-                    <label class="block text-gray-700 font-bold mb-2 text-lg">🥤 Nama Produk Botol</label>
+                    <label class="block text-gray-700 font-bold mb-2 text-lg">Nama Produk Botol</label>
                     <label>
                         <input type="text" name="nama_produk" required class="w-full border-2 border-gray-300 rounded-lg p-4 text-lg" placeholder="Contoh: Botol Kaca 330ml">
                     </label>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2 text-lg">Jumlah Botol per Dus</label>
+                    <label>
+                        <input type="number" name="botol_perdus" min="1" value="12" required class="w-full border-2 border-gray-300 rounded-lg p-4 text-lg" placeholder="12">
+                    </label>
+                    <p class="text-xs text-gray-500 mt-1">Berapa botol dalam 1 dus untuk produk ini</p>
                 </div>
 
 <div class="space-y-4">
@@ -146,10 +158,11 @@ include '../../includes/modal_confirm.php';
                                 <p class="text-xs text-gray-500 font-mono">CODE: <?= $p['kode_produk'] ?></p>
                                 <div class="grid grid-cols-2 gap-2 mt-3">
                                     <div class="text-[10px] uppercase font-bold text-gray-400">Stok Gudang: <span class="text-blue-600 text-sm block font-black"><?= number_format($p['stok_gudang'] ?? 0, 0, ',', '.') ?></span></div>
+                                    <div class="text-[10px] uppercase font-bold text-gray-400">Botol/Dus: <span class="text-purple-600 text-sm block font-black"><?= $p['botol_perdus'] ?? 12 ?></span></div>
                                 </div>
                             </div>
                             <div class="flex flex-col gap-2 ml-4">
-                                <button onclick="editProduct(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>')"
+                                <button onclick="editProduct(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>', <?= $p['botol_perdus'] ?? 12 ?>)"
                                         class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm transition-all">
                                     ✏️ Edit
                                 </button>
@@ -199,8 +212,13 @@ include '../../includes/modal_confirm.php';
             <input type="hidden" name="id" id="edit_id">
 
             <div class="mb-4">
-                <label class="block text-gray-700 font-bold mb-2">🥤 Nama Produk</label>
+                <label class="block text-gray-700 font-bold mb-2">Nama Produk</label>
                 <label for="edit_nama"></label><input type="text" name="nama_produk" id="edit_nama" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 font-bold mb-2">Jumlah Botol per Dus</label>
+                <label for="edit_botol_perdus"></label><input type="number" name="botol_perdus" id="edit_botol_perdus" min="1" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg">
             </div>
 
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 text-sm text-yellow-800 rounded mb-4">
@@ -259,9 +277,10 @@ function switchTab(tab) {
     }
 }
 
-function editProduct(id, nama) {
+function editProduct(id, nama, botolPerdus) {
     document.getElementById('edit_id').value = id;
     document.getElementById('edit_nama').value = nama;
+    document.getElementById('edit_botol_perdus').value = botolPerdus;
     document.getElementById('editModal').classList.remove('hidden');
 }
 

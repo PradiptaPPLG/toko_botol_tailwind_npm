@@ -123,7 +123,7 @@ function save_transaction(array $header_data, array $items): array
                 throw new Exception('Failed to insert transaction detail for product: ' . $nama_produk);
             }
 
-            $jumlah_botol = ($satuan === 'dus') ? ($jumlah * 12) : $jumlah;
+            $jumlah_botol = ($satuan === 'dus') ? ($jumlah * ($produk_data['botol_perdus'] ?? 12)) : $jumlah;
             $stok_cabang = get_stok_cabang($produk_id, $cabang_id);
 
             if ($stok_cabang < $jumlah_botol) {

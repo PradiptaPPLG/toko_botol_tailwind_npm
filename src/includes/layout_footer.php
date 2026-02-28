@@ -105,6 +105,62 @@ document.querySelectorAll('.btn-primary, .btn-danger').forEach(btn => {
         }, 600);
     });
 });
+// ============= THOUSAND SEPARATOR UTILITY =============
+// Format a number with dots as thousand separators (Indonesian style)
+function formatThousand(num) {
+    if (num === null || num === undefined || num === '') return '';
+    return parseInt(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+// Strip thousand separators to get raw number
+function stripThousand(str) {
+    if (!str) return '';
+    return str.toString().replace(/\./g, '');
+}
+
+// Auto-apply thousand separator to all inputs with class 'format-number'
+document.addEventListener('DOMContentLoaded', function() {
+    function initFormatNumber() {
+        document.querySelectorAll('.format-number').forEach(input => {
+            if (input.dataset.formatBound) return;
+            input.dataset.formatBound = '1';
+            
+            input.addEventListener('input', function() {
+                const pos = this.selectionStart;
+                const oldLen = this.value.length;
+                const raw = stripThousand(this.value);
+                if (raw === '' || isNaN(raw)) {
+                    this.value = '';
+                    return;
+                }
+                this.value = formatThousand(raw);
+                const newLen = this.value.length;
+                const newPos = pos + (newLen - oldLen);
+                this.setSelectionRange(newPos, newPos);
+            });
+
+            // Format initial value if present
+            if (input.value && !isNaN(stripThousand(input.value))) {
+                input.value = formatThousand(stripThousand(input.value));
+            }
+        });
+    }
+
+    initFormatNumber();
+
+    // Re-init for dynamically added inputs (MutationObserver)
+    const observer = new MutationObserver(function() { initFormatNumber(); });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Strip thousand separators before form submission
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function() {
+            this.querySelectorAll('.format-number').forEach(input => {
+                input.value = stripThousand(input.value);
+            });
+        });
+    });
+});
 </script>
 
 </body>

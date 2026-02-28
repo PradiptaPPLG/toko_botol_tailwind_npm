@@ -19,7 +19,7 @@ foreach ($produk_counts as $pc) {
     else $total_produk_nonaktif = $pc['counts'];
 }
 $total_transaksi_hari_ini = query("SELECT COUNT(*) as total, SUM(total_harga) as nominal FROM transaksi_header WHERE DATE(created_at) = CURDATE()")[0] ?? ['total' => 0, 'nominal' => 0];
-$total_pengeluaran_hari_ini = query("SELECT SUM(nominal) as total FROM pengeluaran WHERE DATE(created_at) = CURDATE()")[0]['total'] ?? 0;
+$total_pengeluaran_hari_ini = query("SELECT SUM(nominal) as total FROM pengeluaran WHERE DATE(created_at) = CURDATE() AND deleted_at IS NULL")[0]['total'] ?? 0;
 $total_stok_gudang = query("SELECT SUM(stok_gudang) as total FROM produk")[0]['total'] ?? 0;
 $cek_hilang = cek_selisih_stok();
 

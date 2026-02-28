@@ -33,10 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['batch_stok_masuk'])) 
             $satuan      = $item['satuan'] ?? 'dus';
             $jumlah      = intval($item['jumlah']);
             $harga_input = (float)($item['harga_beli'] ?? 0);
+            $produk_data = get_produk_by_id($produk_id);
+            $bpd = intval($produk_data['botol_perdus'] ?? 12);
             
             if ($satuan === 'dus') {
-                $jumlah_botol = $jumlah * 12;
-                $harga_beli_satuan = $harga_input / 12; 
+                $jumlah_botol = $jumlah * $bpd;
+                $harga_beli_satuan = $harga_input / $bpd; 
                 $total_item = $jumlah * $harga_input;
             } else {
                 $jumlah_botol = $jumlah;
@@ -164,13 +166,13 @@ include '../../includes/modal_confirm.php';
             <label class="block text-sm font-medium text-gray-700 mb-1" id="jumlah-modal-label">Jumlah Dus</label>
             <label for="jumlah-modal-input"></label><input type="number" id="jumlah-modal-input" placeholder="Contoh: 10"
                                                            class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-500">
-            <p class="text-[10px] text-indigo-600 mt-1" id="jumlah-modal-hint">* 1 dus = 12 botol</p>
+            <p class="text-[10px] text-indigo-600 mt-1" id="jumlah-modal-hint"></p>
         </div>
 
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1" id="harga-modal-label">Harga Beli per DUS (Rp)</label>
-            <label for="harga-modal-input"></label><input type="number" id="harga-modal-input" placeholder="Contoh: 30000"
-                                                          class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-500">
+            <label for="harga-modal-input"></label><input type="text" id="harga-modal-input" inputmode="numeric" placeholder="Contoh: 30.000"
+                                                          class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-500 format-number">
         </div>
 
         <div class="flex gap-3">
@@ -220,7 +222,7 @@ include '../../includes/modal_confirm.php';
 
                 html += `
                     <div class="product-card bg-white border-2 border-gray-200 rounded-lg p-3"
-                         onclick="addToCartMasuk(${p.id}, '${p.nama_produk.replace(/'/g, "\\'")}', ${stok}, ${hargaBeli})">
+                         onclick="addToCartMasuk(${p.id}, '${p.nama_produk.replace(/'/g, "\\'")}', ${stok}, ${hargaBeli}, ${p.botol_perdus || 12})">
                         <div class="bg-linear-to-br from-green-50 to-green-100 rounded-lg h-20 flex items-center justify-center mb-2">
                             <span class="text-3xl">🥤</span>
                         </div>
@@ -247,20 +249,21 @@ include '../../includes/modal_confirm.php';
             }
         }
 
-        function addToCartMasuk(id, nama, stokCabang, hargaBeli) {
+        function addToCartMasuk(id, nama, stokCabang, hargaBeli, botolPerdus) {
             const isDus = globalUnit === 'dus';
+            const bpd = botolPerdus || 12;
             // Update modal labels
             document.getElementById('harga-modal-title').textContent = isDus ? '📦 Input Stok Masuk (DUS)' : '🥤 Input Stok Masuk (BOTOL)';
             document.getElementById('harga-modal-nama').textContent = nama;
             document.getElementById('jumlah-modal-label').textContent = isDus ? 'Jumlah Dus' : 'Jumlah Botol';
             document.getElementById('harga-modal-label').textContent = isDus ? 'Harga Beli per DUS (Rp)' : 'Harga Beli per Botol (Rp)';
-            document.getElementById('jumlah-modal-hint').textContent = isDus ? '* 1 dus = 12 botol' : '';
+            document.getElementById('jumlah-modal-hint').textContent = isDus ? '* 1 dus = ' + bpd + ' botol' : '';
             document.getElementById('jumlah-modal-input').value = '1';
             document.getElementById('harga-modal-input').value = '';
             
             document.getElementById('harga-modal-confirm').onclick = function() {
                 const jumlah = parseInt(document.getElementById('jumlah-modal-input').value) || 0;
-                const harga = parseFloat(document.getElementById('harga-modal-input').value) || 0;
+                const harga = parseFloat(stripThousand(document.getElementById('harga-modal-input').value)) || 0;
                 
                 if (jumlah <= 0) { alert('Jumlah harus lebih dari 0'); return; }
                 
@@ -278,7 +281,8 @@ include '../../includes/modal_confirm.php';
                         jumlah: jumlah, 
                         stok_cabang: stokCabang, 
                         harga_beli: harga,
-                        satuan: satuan
+                        satuan: satuan,
+                        botol_perdus: bpd
                     });
                 }
                 renderCartMasuk();
@@ -307,17 +311,18 @@ include '../../includes/modal_confirm.php';
         function editHargaBeli(index) {
             const item = cartMasuk[index];
             const isDus = item.satuan === 'dus';
-            document.getElementById('harga-modal-title').textContent = isDus ? '📦 Input Stok Masuk (DUS)' : '🥤 Input Stok Masuk (BOTOL)';
+            const bpd = item.botol_perdus || 12;
+            document.getElementById('harga-modal-title').textContent = isDus ? 'Input Stok Masuk (DUS)' : 'Input Stok Masuk (BOTOL)';
             document.getElementById('harga-modal-nama').textContent = item.nama;
             document.getElementById('jumlah-modal-label').textContent = isDus ? 'Jumlah Dus' : 'Jumlah Botol';
             document.getElementById('harga-modal-label').textContent = isDus ? 'Harga Beli per DUS (Rp)' : 'Harga Beli per Botol (Rp)';
-            document.getElementById('jumlah-modal-hint').textContent = isDus ? '* 1 dus = 12 botol' : '';
+            document.getElementById('jumlah-modal-hint').textContent = isDus ? '* 1 dus = ' + bpd + ' botol' : '';
             document.getElementById('jumlah-modal-input').value = item.jumlah;
             document.getElementById('harga-modal-input').value = item.harga_beli || '';
             
             document.getElementById('harga-modal-confirm').onclick = function() {
                 const jumlah = parseInt(document.getElementById('jumlah-modal-input').value) || 0;
-                const harga = parseFloat(document.getElementById('harga-modal-input').value) || 0;
+                const harga = parseFloat(stripThousand(document.getElementById('harga-modal-input').value)) || 0;
                 
                 if (jumlah <= 0) { alert('Jumlah harus lebih dari 0'); return; }
                 
@@ -349,7 +354,8 @@ include '../../includes/modal_confirm.php';
             cartMasuk.forEach((item, idx) => {
                 const subtotal = item.jumlah * (item.harga_beli || 0);
                 const isDus = item.satuan === 'dus';
-                const totalBotol = isDus ? item.jumlah * 12 : item.jumlah;
+                const bpd = item.botol_perdus || 12;
+                const totalBotol = isDus ? item.jumlah * bpd : item.jumlah;
                 const unitLabel = isDus ? 'dus' : 'botol';
                 const hargaLabel = isDus ? 'Harga Beli/dus' : 'Harga Beli/botol';
                 totalBelanja += subtotal;

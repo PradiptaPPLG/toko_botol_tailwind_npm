@@ -31,9 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_transaksi'])) 
             $harga_tawar = (float)$item['harga_tawar'];
 
             $data_produk = query("SELECT * FROM produk WHERE id = $produk_id")[0];
+            $botol_perdus = intval($data_produk['botol_perdus'] ?? 12);
             
             $harga_satuan = $harga_tawar;
-            $jumlah_botol = ($satuan === 'dus') ? ($jumlah * 12) : $jumlah;
+            $jumlah_botol = ($satuan === 'dus') ? ($jumlah * $botol_perdus) : $jumlah;
             
             $selisih = 0; // Prices follow transactions now, no "normal" price to compare against.
 
@@ -132,7 +133,7 @@ $rekap = query("
                             $is_empty = $stok <= 0;
                         ?>
                         <div class="product-card bg-white border-2 border-gray-200 rounded-lg p-3 <?= $is_empty ? 'opacity-40 grayscale pointer-events-none' : '' ?>"
-                             onclick="handleAddToCart(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>', <?= $stok ?>, <?= $p['harga_beli'] ?? 0 ?>)">
+                         onclick="handleAddToCart(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>', <?= $stok ?>, <?= $p['harga_beli'] ?? 0 ?>, <?= $p['botol_perdus'] ?? 12 ?>)">
                             <div class="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg h-20 flex items-center justify-center mb-2">
                                 <span class="text-3xl">🥤</span>
                             </div>
@@ -195,25 +196,26 @@ function setGlobalUnit(unit) {
     }
 }
 
-function handleAddToCart(id, nama, stok, hargaBeli) {
+function handleAddToCart(id, nama, stok, hargaBeli, botolPerdus) {
     const satuan = globalUnit;
     const defaultHarga = 0;
-    const hargaBeliRef = satuan === 'dus' ? hargaBeli * 12 : hargaBeli;
+    const bpd = botolPerdus || 12;
+    const hargaBeliRef = satuan === 'dus' ? hargaBeli * bpd : hargaBeli;
     openHargaTawarModal(nama + ' (' + satuan.toUpperCase() + ')', defaultHarga, hargaBeliRef, function(hargaTawar) {
         if (hargaTawar > 0) {
             const existing = cart.find(i => i.produk_id === id && i.satuan === satuan);
             if(existing) {
                 const newJumlah = existing.jumlah + 1;
-                const newBotol = satuan === 'dus' ? newJumlah * 12 : newJumlah;
+                const newBotol = satuan === 'dus' ? newJumlah * bpd : newJumlah;
                 if(newBotol > stok) { alert('Melebihi stok! Sisa: ' + stok + ' botol'); return; }
                 existing.jumlah = newJumlah;
                 existing.harga_tawar = hargaTawar;
             } else {
-                const initBotol = satuan === 'dus' ? 12 : 1;
+                const initBotol = satuan === 'dus' ? bpd : 1;
                 if(initBotol > stok) { alert('Stok tidak cukup! Sisa: ' + stok + ' botol'); return; }
                 cart.push({
                     produk_id: id, nama, 
-                    jumlah: 1, satuan: satuan, stok, harga_tawar: hargaTawar, harga_beli: hargaBeli
+                    jumlah: 1, satuan: satuan, stok, harga_tawar: hargaTawar, harga_beli: hargaBeli, botol_perdus: bpd
                 });
             }
             renderCart();
@@ -223,7 +225,8 @@ function handleAddToCart(id, nama, stok, hargaBeli) {
 
 function editHargaTawar(index) {
     const item = cart[index];
-    const hargaBeliRef = item.satuan === 'dus' ? item.harga_beli * 12 : item.harga_beli;
+    const bpd = item.botol_perdus || 12;
+    const hargaBeliRef = item.satuan === 'dus' ? item.harga_beli * bpd : item.harga_beli;
     openHargaTawarModal(item.nama + ' (' + item.satuan.toUpperCase() + ')', item.harga_tawar, hargaBeliRef, function(harga) {
         if (harga > 0) {
             cart[index].harga_tawar = harga;
@@ -237,7 +240,8 @@ function updateQty(index, delta) {
     if(newQty <= 0) { cart.splice(index, 1); }
     else {
         const item = cart[index];
-        const newBotol = item.satuan === 'dus' ? newQty * 12 : newQty;
+        const bpd = item.botol_perdus || 12;
+        const newBotol = item.satuan === 'dus' ? newQty * bpd : newQty;
         if(newBotol > item.stok) { alert('Melebihi stok! Sisa: ' + item.stok + ' botol'); return; }
         cart[index].jumlah = newQty;
     }
@@ -250,7 +254,8 @@ function setQty(index, value) {
         cart.splice(index, 1);
     } else {
         const item = cart[index];
-        const newBotol = item.satuan === 'dus' ? newQty * 12 : newQty;
+        const bpd = item.botol_perdus || 12;
+        const newBotol = item.satuan === 'dus' ? newQty * bpd : newQty;
         if(newBotol > item.stok) {
             alert('Melebihi stok! Sisa: ' + item.stok + ' botol');
             renderCart();
@@ -280,7 +285,7 @@ function renderCart() {
     cart.forEach((item, idx) => {
         const harga = item.harga_tawar;
         const sub = harga * item.jumlah;
-        const totalBotol = item.satuan === 'dus' ? item.jumlah * 12 : item.jumlah;
+        const totalBotol = item.satuan === 'dus' ? item.jumlah * (item.botol_perdus || 12) : item.jumlah;
         total += sub;
 
         html += `<div class="border rounded-lg p-2 bg-gray-50">
@@ -329,7 +334,7 @@ function openHargaTawarModal(nama, defaultHarga, hargaBeliRef, callback) {
     input.select();
 
     confirmBtn.onclick = () => {
-        const val = parseInt(input.value);
+        const val = parseInt(stripThousand(input.value));
         if (val > 0) {
             modal.classList.add('hidden');
             callback(val);
@@ -371,8 +376,8 @@ renderCart();
 
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Harga Jual (Rp)</label>
-            <label for="htawar-modal-input"></label><input type="number" id="htawar-modal-input" placeholder="Contoh: 25000"
-                                                           class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-500">
+            <label for="htawar-modal-input"></label><input type="text" id="htawar-modal-input" inputmode="numeric" placeholder="Contoh: 25.000"
+                                                           class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-500 format-number">
         </div>
 
         <div class="flex gap-3">

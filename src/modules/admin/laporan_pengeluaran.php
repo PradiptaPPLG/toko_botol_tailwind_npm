@@ -22,6 +22,7 @@ $pengeluaran = query("
     SELECT *
     FROM pengeluaran
     WHERE DATE(created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'
+    AND deleted_at IS NULL
     $sql_keterangan
     ORDER BY created_at DESC
 ");
