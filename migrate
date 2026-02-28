@@ -42,8 +42,8 @@ $conn->query("CREATE DATABASE IF NOT EXISTS `$db_name` CHARACTER SET utf8mb4 COL
 $conn->select_db($db_name);
 
 // Load base classes
-require_once __DIR__ . '/includes/Migration.php';
-require_once __DIR__ . '/includes/Seeder.php';
+require_once __DIR__ . '/src/includes/Migration.php';
+require_once __DIR__ . '/src/includes/Seeder.php';
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
 

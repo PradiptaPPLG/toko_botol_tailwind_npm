@@ -120,10 +120,27 @@ if (isset($_POST['stock_opname'])) {
 
 // Pengeluaran
 if (isset($_POST['tambah_pengeluaran'])) {
-    $nominal = intval($_POST['nominal']);
+    $nominal = intval(str_replace('.', '', $_POST['nominal']));
     $keterangan = escape_string($_POST['keterangan']);
     execute("INSERT INTO pengeluaran (nominal, keterangan) VALUES ($nominal, '$keterangan')");
     $success_pengeluaran = "✅ Pengeluaran dicatat!";
+}
+
+// Edit pengeluaran
+if (isset($_POST['edit_pengeluaran'])) {
+    $id = intval($_POST['id']);
+    $nominal = intval(str_replace('.', '', $_POST['nominal']));
+    $keterangan = escape_string($_POST['keterangan']);
+    execute("UPDATE pengeluaran SET nominal = $nominal, keterangan = '$keterangan' WHERE id = $id AND deleted_at IS NULL");
+    $success_pengeluaran = "✅ Pengeluaran berhasil diperbarui!";
+}
+
+// Soft delete pengeluaran
+if (isset($_GET['hapus_pengeluaran'])) {
+    $id = intval($_GET['hapus_pengeluaran']);
+    execute("UPDATE pengeluaran SET deleted_at = NOW() WHERE id = $id AND deleted_at IS NULL");
+    header("Location: index.php?op=pengeluaran");
+    exit;
 }
 
 $produk = get_produk();
@@ -469,7 +486,7 @@ $cek_hilang = cek_selisih_stok();
                                 <div>
                                     <label class="block text-gray-700 font-medium mb-2">Nominal</label>
                                     <label>
-                                        <input type="number" name="nominal" min="0" required class="w-full border rounded-lg p-3" placeholder="Rp 0">
+                                        <input type="text" name="nominal" inputmode="numeric" required class="w-full border rounded-lg p-3 format-number" placeholder="Rp 0">
                                     </label>
                                 </div>
                                 <div>
@@ -487,16 +504,22 @@ $cek_hilang = cek_selisih_stok();
 
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <h3 class="font-bold text-lg mb-3">📋 Pengeluaran Hari Ini</h3>
-                        <?php $pengeluaran_hari = query("SELECT * FROM pengeluaran WHERE DATE(created_at) = CURDATE() ORDER BY created_at DESC LIMIT 10"); ?>
+                        <?php $pengeluaran_hari = query("SELECT * FROM pengeluaran WHERE DATE(created_at) = CURDATE() AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 10"); ?>
                         <?php if (count($pengeluaran_hari) > 0): ?>
                             <div class="space-y-2 max-h-80 overflow-y-auto">
                                 <?php foreach ($pengeluaran_hari as $ph): ?>
                                     <div class="flex justify-between items-center bg-white p-3 rounded shadow-sm">
-                                        <div>
+                                        <div class="flex-1">
                                             <p class="font-medium"><?= $ph['keterangan'] ?></p>
                                             <p class="text-xs text-gray-500"><?= date('H:i', strtotime($ph['created_at'])) ?></p>
                                         </div>
-                                        <span class="font-bold text-red-600"><?= rupiah($ph['nominal']) ?></span>
+                                        <span class="font-bold text-red-600 mr-3"><?= rupiah($ph['nominal']) ?></span>
+                                        <div class="flex gap-1">
+                                            <button onclick="editPengeluaran(<?= $ph['id'] ?>, '<?= htmlspecialchars($ph['keterangan']) ?>', <?= $ph['nominal'] ?>)"
+                                                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">✏️</button>
+                                            <button onclick="hapusPengeluaran(<?= $ph['id'] ?>, '<?= htmlspecialchars($ph['keterangan']) ?>')"
+                                                    class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">🗑️</button>
+                                        </div>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -507,6 +530,29 @@ $cek_hilang = cek_selisih_stok();
                 </div>
             </div>
         </div>
+
+<!-- Edit Pengeluaran Modal (index.php) -->
+<div id="editPengeluaranModal" class="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">✏️ Edit Pengeluaran</h3>
+        <form method="POST" id="editPengeluaranForm">
+            <input type="hidden" name="edit_pengeluaran" value="1">
+            <input type="hidden" name="id" id="edit_peng_id">
+            <div class="mb-4">
+                <label class="block text-gray-700 font-bold mb-2">Nominal</label>
+                <input type="text" name="nominal" id="edit_peng_nominal" inputmode="numeric" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg format-number">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 font-bold mb-2">Keterangan</label>
+                <input type="text" name="keterangan" id="edit_peng_keterangan" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg">
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeEditPengeluaranModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg">Batal</button>
+                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">💾 Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
     </div>
 
     <script>
@@ -747,6 +793,29 @@ $cek_hilang = cek_selisih_stok();
         // Initial render
         renderCartMasuk();
         renderCartKeluar();
+
+        // ============= PENGELUARAN EDIT/DELETE =============
+        function editPengeluaran(id, keterangan, nominal) {
+            document.getElementById('edit_peng_id').value = id;
+            document.getElementById('edit_peng_keterangan').value = keterangan;
+            document.getElementById('edit_peng_nominal').value = formatThousand(nominal);
+            document.getElementById('editPengeluaranModal').classList.remove('hidden');
+        }
+
+        function closeEditPengeluaranModal() {
+            document.getElementById('editPengeluaranModal').classList.add('hidden');
+        }
+
+        document.getElementById('editPengeluaranModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEditPengeluaranModal();
+        });
+
+        async function hapusPengeluaran(id, keterangan) {
+            const confirmed = await confirmDelete(`Hapus pengeluaran "${keterangan}"?`);
+            if (confirmed) {
+                window.location.href = '?hapus_pengeluaran=' + id + '&op=pengeluaran';
+            }
+        }
 
         // Buka tab berdasarkan parameter URL
         const urlParams = new URLSearchParams(window.location.search);

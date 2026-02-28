@@ -22,7 +22,7 @@ $root_path = $root ?? '';
 
     <!-- SIDEBAR -->
     <div id="sidebar"
-         class="fixed lg:relative top-0 left-0 h-full w-64 bg-linear-to-b from-blue-900 to-blue-800 text-white flex flex-col shadow-2xl z-50
+         class="fixed lg:relative top-0 left-0 h-full w-64 bg-gradient-to-b from-blue-900 to-blue-800 text-white flex flex-col shadow-2xl z-50
                 transition-all duration-300 ease-in-out
                 -translate-x-full lg:translate-x-0">
 

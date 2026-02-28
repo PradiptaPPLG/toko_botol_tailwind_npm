@@ -8,9 +8,10 @@ class CabangSeeder extends Seeder
 
         // Pusat must be first (id=1) - this is the central warehouse
         $this->insertMany('cabang', [
-            ['nama_cabang' => 'Pusat',  'alamat' => 'Gudang Pusat - Jl. Industri No. 1'],
-            ['nama_cabang' => 'Barat',  'alamat' => 'Jl. Raya Barat No.1'],
-            ['nama_cabang' => 'Timur',  'alamat' => 'Jl. Raya Timur No.3'],
+            ['nama_cabang' => 'KONTER',  'alamat' => 'Jl. Mangin, Terminal Indihiang'],
+            ['nama_cabang' => 'CIKURUBUK',  'alamat' => 'Jl. Pasar Cikurubuk'],
+            ['nama_cabang' => 'SL.TOBING',  'alamat' => 'Jl. SL.Tobing'],
+            ['nama_cabang' => 'GUDANG',  'alamat' => ''],
         ]);
     }
 }

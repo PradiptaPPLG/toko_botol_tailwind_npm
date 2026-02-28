@@ -22,7 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['batch_stok_transfer']
             $jumlah_input = intval($item['jumlah']);
 
             // Convert to botol for DB
-            $jumlah = ($satuan === 'dus') ? $jumlah_input * 12 : $jumlah_input;
+            $produk_data = get_produk_by_id($produk_id);
+            $bpd = intval($produk_data['botol_perdus'] ?? 12);
+            $jumlah = ($satuan === 'dus') ? $jumlah_input * $bpd : $jumlah_input;
 
             // Check stok at cabang_asal
             $stok_check = query("SELECT stok FROM stok_cabang WHERE produk_id = $produk_id AND cabang_id = $cabang_asal");
@@ -188,7 +190,7 @@ $cabang = get_cabang();
                 const stokKey = `${p.id}_${cabangId}`;
                 const stok = stokCabangData[stokKey] || 0;
                 const disabled = stok <= 0 ? 'opacity-50 cursor-not-allowed' : '';
-                const onclick = stok > 0 ? `addToCart(${p.id}, '${p.nama_produk.replace(/'/g, "\\'")}', ${stok})` : '';
+                const onclick = stok > 0 ? `addToCart(${p.id}, '${p.nama_produk.replace(/'/g, "\\'")}', ${stok}, ${p.botol_perdus || 12})` : '';
                 const stokColor = stok > 0 ? 'text-green-600' : 'text-red-600';
 
                 html += `
@@ -220,18 +222,19 @@ $cabang = get_cabang();
             }
         }
 
-        function addToCart(id, nama, stok) {
+        function addToCart(id, nama, stok, botolPerdus) {
             const satuan = globalUnit;
+            const bpd = botolPerdus || 12;
             let item = cart.find(i => i.produk_id === id && i.satuan === satuan);
             if (item) {
                 const newJumlah = item.jumlah + 1;
-                const newBotol = satuan === 'dus' ? newJumlah * 12 : newJumlah;
+                const newBotol = satuan === 'dus' ? newJumlah * bpd : newJumlah;
                 if (newBotol > stok) { alert('Melebihi stok!'); return; }
                 item.jumlah = newJumlah;
             } else {
-                const initBotol = satuan === 'dus' ? 12 : 1;
+                const initBotol = satuan === 'dus' ? bpd : 1;
                 if (initBotol > stok) { alert('Stok tidak cukup!'); return; }
-                cart.push({ produk_id: id, nama, jumlah: 1, stok_gudang: stok, satuan: satuan });
+                cart.push({ produk_id: id, nama, jumlah: 1, stok_gudang: stok, satuan: satuan, botol_perdus: bpd });
             }
             renderCart();
         }
@@ -241,7 +244,8 @@ $cabang = get_cabang();
             if (newQty <= 0) { cart.splice(index, 1); }
             else {
                 const item = cart[index];
-                const newBotol = item.satuan === 'dus' ? newQty * 12 : newQty;
+                const bpd = item.botol_perdus || 12;
+                const newBotol = item.satuan === 'dus' ? newQty * bpd : newQty;
                 if (newBotol > item.stok_gudang) { alert('Melebihi stok!'); return; }
                 cart[index].jumlah = newQty;
             }
@@ -254,7 +258,8 @@ $cabang = get_cabang();
                 cart.splice(index, 1);
             } else {
                 const item = cart[index];
-                const newBotol = item.satuan === 'dus' ? newQty * 12 : newQty;
+                const bpd = item.botol_perdus || 12;
+                const newBotol = item.satuan === 'dus' ? newQty * bpd : newQty;
                 if (newBotol > item.stok_gudang) {
                     alert('Melebihi stok!');
                     renderCart();
@@ -282,7 +287,8 @@ $cabang = get_cabang();
             let html = '';
             cart.forEach((item, idx) => {
                 const isDus = item.satuan === 'dus';
-                const totalBotol = isDus ? item.jumlah * 12 : item.jumlah;
+                const bpd = item.botol_perdus || 12;
+                const totalBotol = isDus ? item.jumlah * bpd : item.jumlah;
                 const unitLabel = isDus ? 'dus' : 'botol';
                 html += `<div class="border rounded-lg p-2 bg-gray-50">
             <div class="flex justify-between items-start mb-2">
