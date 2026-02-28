@@ -4,8 +4,8 @@
   "description": "Aplikasi Kasir Toko Botol",
   "main": "index.js",
   "scripts": {
-    "build": "npx @tailwindcss/cli -i input.css -o ./dist/tailwind.css --minify",
-    "watch": "npx @tailwindcss/cli -i input.css -o ./dist/tailwind.css --watch"
+    "build": "npx @tailwindcss/cli -i input.css -o ./src/dist/tailwind.css --minify",
+    "watch": "npx @tailwindcss/cli -i input.css -o ./src/dist/tailwind.css --watch"
   },
   "keywords": [],
   "author": "",

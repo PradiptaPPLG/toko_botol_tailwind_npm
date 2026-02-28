@@ -53,10 +53,10 @@ include '../../includes/modal_confirm.php';
     <div class="p-4 lg:p-6">
         <!-- Header -->
         <div class="bg-white rounded-lg shadow p-4 mb-4">
-            <h1 class="judul text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
+            <h1 class="judul text-fluid-2xl lg:text-fluid-3xl font-bold text-gray-800 flex items-center">
                 <span class="mr-3">💸</span> PENGELUARAN OPERASIONAL
             </h1>
-            <p class="text-sm text-gray-600 mt-1">👤 <?= $_SESSION['user']['nama'] ?></p>
+            <p class="text-fluid-sm text-gray-600 mt-1">👤 <?= $_SESSION['user']['nama'] ?></p>
         </div>
 
         <?php if (isset($success_pengeluaran)): ?>
@@ -66,7 +66,7 @@ include '../../includes/modal_confirm.php';
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Form Pengeluaran -->
             <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-xl font-bold text-red-700 mb-4">💰 Catat Pengeluaran</h2>
+                <h2 class="text-fluid-xl font-bold text-red-700 mb-4">💰 Catat Pengeluaran</h2>
                 <form method="POST">
                     <div class="space-y-4">
                         <div>
@@ -81,14 +81,14 @@ include '../../includes/modal_confirm.php';
                                 <input type="text" name="keterangan" required class="w-full border rounded-lg p-3" placeholder="Listrik, air, dll">
                             </label>
                         </div>
-                        <button type="submit" name="tambah_pengeluaran" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg text-lg">💰 CATAT</button>
+                        <button type="submit" name="tambah_pengeluaran" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg text-fluid-lg">💰 CATAT</button>
                     </div>
                 </form>
             </div>
 
             <!-- Riwayat Pengeluaran Hari Ini -->
             <div class="bg-gray-50 p-4 rounded-lg">
-                <h3 class="font-bold text-lg mb-3">📋 Pengeluaran Hari Ini</h3>
+                <h3 class="font-bold text-fluid-lg mb-3">📋 Pengeluaran Hari Ini</h3>
                 <?php $pengeluaran_hari = query("SELECT * FROM pengeluaran WHERE DATE(created_at) = CURDATE() AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 10"); ?>
                 <?php if (count($pengeluaran_hari) > 0): ?>
                     <div class="space-y-2 max-h-80 overflow-y-auto">
@@ -96,14 +96,14 @@ include '../../includes/modal_confirm.php';
                             <div class="flex justify-between items-center bg-white p-3 rounded shadow-sm">
                                 <div class="flex-1">
                                     <p class="font-medium"><?= $ph['keterangan'] ?></p>
-                                    <p class="text-xs text-gray-500"><?= date('H:i', strtotime($ph['created_at'])) ?></p>
+                                    <p class="text-fluid-xs text-gray-500"><?= date('H:i', strtotime($ph['created_at'])) ?></p>
                                 </div>
                                 <span class="font-bold text-red-600 mr-3"><?= rupiah($ph['nominal']) ?></span>
                                 <div class="flex gap-1">
                                     <button onclick="editPengeluaran(<?= $ph['id'] ?>, '<?= htmlspecialchars($ph['keterangan']) ?>', <?= $ph['nominal'] ?>)"
-                                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">✏️</button>
+                                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-fluid-xs font-bold">✏️</button>
                                     <button onclick="hapusPengeluaran(<?= $ph['id'] ?>, '<?= htmlspecialchars($ph['keterangan']) ?>')"
-                                            class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">🗑️</button>
+                                            class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-fluid-xs font-bold">🗑️</button>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -118,17 +118,17 @@ include '../../includes/modal_confirm.php';
 <!-- Edit Pengeluaran Modal -->
 <div id="editPengeluaranModal" class="fixed inset-0 bg-transparent z-[9999] flex items-center justify-center hidden">
     <div class="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full mx-4">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">✏️ Edit Pengeluaran</h3>
+        <h3 class="text-fluid-xl font-bold text-gray-800 mb-4">✏️ Edit Pengeluaran</h3>
         <form method="POST" id="editPengeluaranForm">
             <input type="hidden" name="edit_pengeluaran" value="1">
             <input type="hidden" name="id" id="edit_peng_id">
             <div class="mb-4">
                 <label class="block text-gray-700 font-bold mb-2">Nominal</label>
-                <input type="text" name="nominal" id="edit_peng_nominal" inputmode="numeric" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg format-number">
+                <input type="text" name="nominal" id="edit_peng_nominal" inputmode="numeric" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-fluid-lg format-number">
             </div>
             <div class="mb-4">
                 <label class="block text-gray-700 font-bold mb-2">Keterangan</label>
-                <input type="text" name="keterangan" id="edit_peng_keterangan" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg">
+                <input type="text" name="keterangan" id="edit_peng_keterangan" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-fluid-lg">
             </div>
             <div class="flex gap-3">
                 <button type="button" onclick="closeEditPengeluaranModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg">Batal</button>

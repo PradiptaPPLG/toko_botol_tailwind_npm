@@ -35,15 +35,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['batch_stok_masuk'])) 
             $harga_input = (float)($item['harga_beli'] ?? 0);
             $produk_data = get_produk_by_id($produk_id);
             $bpd = intval($produk_data['botol_perdus'] ?? 12);
-            
+
             if ($satuan === 'dus') {
+                // Input per DUS: harga_input is harga_perdus
                 $jumlah_botol = $jumlah * $bpd;
-                $harga_beli_satuan = $harga_input / $bpd; 
-                $total_item = $jumlah * $harga_input;
+                $harga_perdus = $harga_input;
+                $harga_beli_satuan = $harga_perdus / $bpd;
+                $total_item = $jumlah * $harga_perdus;
             } else {
+                // Input per BOTOL: harga_input is harga_beli_satuan
                 $jumlah_botol = $jumlah;
                 $harga_beli_satuan = $harga_input;
-                $total_item = $jumlah * $harga_input;
+                $harga_perdus = $harga_beli_satuan * $bpd;
+                $total_item = $jumlah * $harga_beli_satuan;
             }
 
             // Add to stok_cabang for selected cabang
@@ -57,8 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['batch_stok_masuk'])) 
             // Update harga_beli on produk
             execute("UPDATE produk SET harga_beli = $harga_beli_satuan WHERE id = $produk_id");
 
-            execute("INSERT INTO stok_masuk (produk_id, jumlah, harga_beli_satuan, total_belanja, keterangan, batch_id)
-                     VALUES ($produk_id, $jumlah_botol, $harga_beli_satuan, $total_item, '$keterangan', '$batch_id')");
+            execute("INSERT INTO stok_masuk (produk_id, jumlah, harga_beli_satuan, harga_perdus, total_belanja, keterangan, batch_id)
+                     VALUES ($produk_id, $jumlah_botol, $harga_beli_satuan, $harga_perdus, $total_item, '$keterangan', '$batch_id')");
             $success_count++;
         }
         $success = "✅ Stok masuk berhasil! $success_count produk ditambahkan. Batch: $batch_id";
@@ -78,10 +82,10 @@ include '../../includes/modal_confirm.php';
     <div class="p-4 lg:p-6">
         <!-- Header -->
         <div class="bg-white rounded-lg shadow p-4 mb-4">
-            <h1 class="judul text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
+            <h1 class="judul text-fluid-2xl lg:text-fluid-3xl font-bold text-gray-800 flex items-center">
                 <span class="mr-3">📥</span> STOK MASUK
             </h1>
-            <p class="text-sm text-gray-600 mt-1">👤 <?= $_SESSION['user']['nama'] ?></p>
+            <p class="text-fluid-sm text-gray-600 mt-1">👤 <?= $_SESSION['user']['nama'] ?></p>
         </div>
 
         <!-- Pesan sukses/error -->
@@ -98,17 +102,17 @@ include '../../includes/modal_confirm.php';
                 <div class="bg-white rounded-lg shadow p-4">
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-3">
-                            <h2 class="text-xl font-bold">🥤 Pilih Produk</h2>
+                            <h2 class="text-fluid-xl font-bold">🥤 Pilih Produk</h2>
                             <div class="flex bg-gray-100 rounded-lg p-1">
-                                <button onclick="setGlobalUnit('botol')" id="unit-botol" class="px-3 py-1 rounded text-xs font-semibold text-gray-500">Botol</button>
-                                <button onclick="setGlobalUnit('dus')" id="unit-dus" class="px-3 py-1 rounded text-xs font-semibold bg-white text-green-600">Dus</button>
+                                <button onclick="setGlobalUnit('botol')" id="unit-botol" class="px-3 py-1 rounded text-fluid-xs font-semibold text-gray-500">Botol</button>
+                                <button onclick="setGlobalUnit('dus')" id="unit-dus" class="px-3 py-1 rounded text-fluid-xs font-semibold bg-white text-green-600">Dus</button>
                             </div>
                         </div>
 
                         <!-- Cabang Selection -->
                         <div class="mb-3">
-                            <label class="block text-sm font-medium mb-2 text-gray-700">📍 Cabang Tujuan:</label>
-                            <label for="select-cabang-tujuan"></label><select id="select-cabang-tujuan" onchange="loadProdukByCabang()" class="w-full border-2 border-green-300 rounded-lg p-2 text-sm font-semibold bg-green-50">
+                            <label class="block text-fluid-sm font-medium mb-2 text-gray-700">📍 Cabang Tujuan:</label>
+                            <label for="select-cabang-tujuan"></label><select id="select-cabang-tujuan" onchange="loadProdukByCabang()" class="w-full border-2 border-green-300 rounded-lg p-2 text-fluid-sm font-semibold bg-green-50">
                                 <?php foreach ($cabang as $c): ?>
                                     <option value="<?= $c['id'] ?>"><?= $c['nama_cabang'] ?></option>
                                 <?php endforeach; ?>
@@ -117,7 +121,7 @@ include '../../includes/modal_confirm.php';
                     </div>
 
                     <div class="mb-3">
-                        <input type="text" id="search-produk" oninput="loadProdukByCabang()" placeholder="🔍 Cari produk..." class="w-full border rounded-lg p-2 text-sm">
+                        <input type="text" id="search-produk" oninput="loadProdukByCabang()" placeholder="🔍 Cari produk..." class="w-full border rounded-lg p-2 text-fluid-sm">
                     </div>
                     <div id="produk-list" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                         <!-- Products will be loaded by JavaScript -->
@@ -127,16 +131,16 @@ include '../../includes/modal_confirm.php';
 
             <div class="lg:col-span-1">
                 <div class="cart-sidebar bg-white rounded-lg shadow p-4">
-                    <h2 class="text-xl font-bold mb-4 text-green-700">📥 Keranjang</h2>
+                    <h2 class="text-fluid-xl font-bold mb-4 text-green-700">📥 Keranjang</h2>
                     <div id="cart-masuk-items" class="space-y-2 mb-4 max-h-96 overflow-y-auto">
                         <p class="text-gray-400 text-center py-8">Keranjang kosong</p>
                     </div>
                     <div class="border-t pt-4">
-                    <div class="flex justify-between text-lg font-bold mb-1">
+                    <div class="flex justify-between text-fluid-lg font-bold mb-1">
                             <span>Total Item</span>
                             <span id="cart-masuk-count" class="text-green-600">0</span>
                         </div>
-                        <div class="flex justify-between text-sm font-semibold mb-3 text-indigo-700">
+                        <div class="flex justify-between text-fluid-sm font-semibold mb-3 text-indigo-700">
                             <span>Total Belanja</span>
                             <span id="cart-masuk-total">Rp 0</span>
                         </div>
@@ -145,14 +149,14 @@ include '../../includes/modal_confirm.php';
                             <input type="hidden" name="cart_data" id="cart-masuk-data">
                             <input type="hidden" name="cabang_tujuan" id="form-cabang-tujuan">
                             <div class="mb-3">
-                                <label class="block text-sm font-medium mb-2">Keterangan</label>
+                                <label class="block text-fluid-sm font-medium mb-2">Keterangan</label>
                                 <label>
-                                    <input type="text" name="keterangan" class="w-full border rounded-lg p-2 text-sm" placeholder="Dari supplier...">
+                                    <input type="text" name="keterangan" class="w-full border rounded-lg p-2 text-fluid-sm" placeholder="Dari supplier...">
                                 </label>
                             </div>
                             <button type="submit" id="btn-submit-masuk" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg disabled:opacity-50" disabled>✅ PROSES</button>
                         </form>
-                        <button onclick="clearCartMasuk()" class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg text-sm mt-2">🗑️ Kosongkan</button>
+                        <button onclick="clearCartMasuk()" class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg text-fluid-sm mt-2">🗑️ Kosongkan</button>
                     </div>
                 </div>
             </div>
@@ -162,20 +166,20 @@ include '../../includes/modal_confirm.php';
 <!-- Harga Beli Modal -->
 <div id="hargaBeliModal" class="fixed inset-0 bg-transparent z-50 hidden flex items-center justify-center">
     <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
-        <h3 class="text-lg font-bold text-gray-800 mb-1" id="harga-modal-title">📦 Input Stok Masuk (DUS)</h3>
-        <p class="text-sm text-gray-500 mb-4" id="harga-modal-nama"></p>
+        <h3 class="text-fluid-lg font-bold text-gray-800 mb-1" id="harga-modal-title">📦 Input Stok Masuk (DUS)</h3>
+        <p class="text-fluid-sm text-gray-500 mb-4" id="harga-modal-nama"></p>
         
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1" id="jumlah-modal-label">Jumlah Dus</label>
+            <label class="block text-fluid-sm font-medium text-gray-700 mb-1" id="jumlah-modal-label">Jumlah Dus</label>
             <label for="jumlah-modal-input"></label><input type="number" id="jumlah-modal-input" placeholder="Contoh: 10"
-                                                           class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-500">
+                                                           class="w-full border-2 border-indigo-300 rounded-lg p-3 text-fluid-lg focus:outline-none focus:border-indigo-500">
             <p class="text-[10px] text-indigo-600 mt-1" id="jumlah-modal-hint"></p>
         </div>
 
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1" id="harga-modal-label">Harga Beli per DUS (Rp)</label>
+            <label class="block text-fluid-sm font-medium text-gray-700 mb-1" id="harga-modal-label">Harga Beli per DUS (Rp)</label>
             <label for="harga-modal-input"></label><input type="text" id="harga-modal-input" inputmode="numeric" placeholder="Contoh: 30.000"
-                                                          class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-500 format-number">
+                                                          class="w-full border-2 border-indigo-300 rounded-lg p-3 text-fluid-lg focus:outline-none focus:border-indigo-500 format-number">
         </div>
 
         <div class="flex gap-3">
@@ -229,10 +233,10 @@ include '../../includes/modal_confirm.php';
                     <div class="product-card bg-white border-2 border-gray-200 rounded-lg p-3"
                          onclick="addToCartMasuk(${p.id}, '${p.nama_produk.replace(/'/g, "\\'")}', ${stok}, ${hargaBeli}, ${p.botol_perdus || 12})">
                         <div class="bg-linear-to-br from-green-50 to-green-100 rounded-lg h-20 flex items-center justify-center mb-2">
-                            <span class="text-3xl">🥤</span>
+                            <span class="text-fluid-3xl">🥤</span>
                         </div>
-                        <h3 class="font-bold text-sm mb-1 truncate">${p.nama_produk}</h3>
-                        <p class="text-xs text-gray-600">Stok: ${stok.toLocaleString('id-ID')} btl</p>
+                        <h3 class="font-bold text-fluid-sm mb-1 truncate">${p.nama_produk}</h3>
+                        <p class="text-fluid-xs text-gray-600">Stok: ${stok.toLocaleString('id-ID')} btl</p>
                     </div>
                 `;
             });
@@ -246,11 +250,11 @@ include '../../includes/modal_confirm.php';
             const btnDus = document.getElementById('unit-dus');
             
             if(unit === 'botol') {
-                btnBotol.className = 'px-3 py-1 rounded text-xs font-semibold bg-white text-green-600';
-                btnDus.className = 'px-3 py-1 rounded text-xs font-semibold text-gray-500';
+                btnBotol.className = 'px-3 py-1 rounded text-fluid-xs font-semibold bg-white text-green-600';
+                btnDus.className = 'px-3 py-1 rounded text-fluid-xs font-semibold text-gray-500';
             } else {
-                btnBotol.className = 'px-3 py-1 rounded text-xs font-semibold text-gray-500';
-                btnDus.className = 'px-3 py-1 rounded text-xs font-semibold bg-white text-green-600';
+                btnBotol.className = 'px-3 py-1 rounded text-fluid-xs font-semibold text-gray-500';
+                btnDus.className = 'px-3 py-1 rounded text-fluid-xs font-semibold bg-white text-green-600';
             }
         }
 
@@ -366,26 +370,26 @@ include '../../includes/modal_confirm.php';
                 totalBelanja += subtotal;
                 html += `<div class="border rounded-lg p-2 bg-gray-50">
             <div class="flex justify-between items-start mb-1">
-                <div><h4 class="font-semibold text-sm">${item.nama}</h4><p class="text-xs text-gray-600">Stok: ${item.stok_cabang} btl</p></div>
-                <button onclick="cartMasuk.splice(${idx},1); renderCartMasuk();" class="text-red-500 text-sm">✕</button>
+                <div><h4 class="font-semibold text-fluid-sm">${item.nama}</h4><p class="text-fluid-xs text-gray-600">Stok: ${item.stok_cabang} btl</p></div>
+                <button onclick="cartMasuk.splice(${idx},1); renderCartMasuk();" class="text-red-500 text-fluid-sm">✕</button>
             </div>
             <div class="flex items-center gap-1 mb-1">
-                <span class="text-xs text-gray-500 mr-1">${hargaLabel}:</span>
-                <span class="text-xs font-bold text-indigo-700">${formatRp(item.harga_beli)}</span>
-                <button onclick="editHargaBeli(${idx})" class="ml-auto text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2 py-0.5 rounded">✏️ Ubah</button>
+                <span class="text-fluid-xs text-gray-500 mr-1">${hargaLabel}:</span>
+                <span class="text-fluid-xs font-bold text-indigo-700">${formatRp(item.harga_beli)}</span>
+                <button onclick="editHargaBeli(${idx})" class="ml-auto text-fluid-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2 py-0.5 rounded">✏️ Ubah</button>
             </div>
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
                     <button onclick="updateQtyMasuk(${idx}, -1)" class="qty-btn bg-gray-300 w-7 h-7 rounded">−</button>
                     <input type="number" value="${item.jumlah}" 
                            onchange="setQtyMasuk(${idx}, this.value)"
-                           class="w-16 text-center border rounded font-bold text-sm mx-1 focus:ring-1 focus:ring-green-500 outline-none">
+                           class="w-16 text-center border rounded font-bold text-fluid-sm mx-1 focus:ring-1 focus:ring-green-500 outline-none">
                     <button onclick="updateQtyMasuk(${idx}, 1)" class="qty-btn bg-green-600 text-white w-7 h-7 rounded">+</button>
-                    <span class="text-xs ml-1">${unitLabel}</span>
+                    <span class="text-fluid-xs ml-1">${unitLabel}</span>
                 </div>
                 <div class="text-right">
                     <p class="text-[10px] text-gray-500">${numFormat(totalBotol)} botol</p>
-                    <p class="text-xs font-bold text-green-700">${formatRp(subtotal)}</p>
+                    <p class="text-fluid-xs font-bold text-green-700">${formatRp(subtotal)}</p>
                 </div>
             </div>
         </div>`;
@@ -397,7 +401,7 @@ include '../../includes/modal_confirm.php';
         }
 
         function formatRp(n) {
-            return 'Rp ' + parseFloat(n || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return 'Rp&nbsp;' + parseFloat(n || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
         function numFormat(n) {

@@ -14,7 +14,7 @@
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
 
-$config_file = __DIR__ . '/includes/config.php';
+$config_file = __DIR__ . '/src/includes/config.php';
 
 // Load DB credentials WITHOUT starting a session (CLI context)
 // We pull the variables by evaluating only the credential lines
