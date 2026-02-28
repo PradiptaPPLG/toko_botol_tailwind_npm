@@ -65,8 +65,8 @@ class MigrationRunner
     public function __construct($conn)
     {
         $this->conn           = $conn;
-        $this->migrations_dir = __DIR__ . '/database/migrations';
-        $this->seeders_dir    = __DIR__ . '/database/seeders';
+        $this->migrations_dir = __DIR__ . '/src/database/migrations';
+        $this->seeders_dir    = __DIR__ . '/src/database/seeders';
     }
 
     // ── Migrations table ──────────────────────────────────────────────────────

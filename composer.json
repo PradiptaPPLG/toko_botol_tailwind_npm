@@ -1,0 +1,22 @@
+{
+    "require": {
+        "vlucas/phpdotenv": "^5.6",
+      "ext-mysqli": "*"
+    },
+    "scripts": {
+        "setup": [
+            "echo 'Setting up project...'",
+            "echo 'Installing dependencies...'",
+            "composer install",
+            "npm install",
+            "echo 'Copying environment file...'",
+            "cp .env.example .env"
+        ],
+        "setup:build": "composer setup && npm run build",
+        "setup:watch": "composer setup && npm run watch",
+        "migrate": "docker-compose exec -T php php migrate",
+        "migrate:fresh": "docker-compose exec -T php php migrate fresh",
+        "migrate:seed": "docker-compose exec -T php php migrate --seed",
+        "migrate:fresh:seed": "docker-compose exec -T php php migrate fresh --seed"
+    }
+}

@@ -1,0 +1,277 @@
+@import "tailwindcss";
+
+/* ========================================
+   BASE STYLES - Global application styles
+   ======================================== */
+@layer base {
+  body {
+    background-color: #f3f4f6;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* ========================================
+   COMPONENTS - Reusable component styles
+   ======================================== */
+@layer components {
+  /* Sidebar */
+  .sidebar {
+    background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+    transition: transform 0.3s ease;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    background-color: #2563eb;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    background-color: #1e40af;
+    transform: scale(1.01);
+  }
+
+  .btn-danger {
+    background-color: #dc2626;
+    transition: all 0.2s;
+  }
+
+  .btn-danger:hover {
+    background-color: #b91c1c;
+    transform: scale(1.01);
+  }
+
+  /* Card component */
+  .card {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 0.5rem;
+  }
+
+  /* Product Card - Interactive product display */
+  .product-card {
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  }
+
+  .product-card:active {
+    transform: scale(0.98);
+  }
+
+  /* Cart Sidebar - Sticky cart position */
+  .cart-sidebar {
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+  }
+
+  /* Quantity Buttons - Interactive controls */
+  .qty-btn {
+    transition: all 0.15s;
+  }
+
+  .qty-btn:active {
+    transform: scale(0.9);
+  }
+
+  /* Operation Toggle - Active state scaling */
+  .operation-toggle button.active {
+    transform: scale(1.05);
+  }
+
+  /* Notification Item - Alert with close button */
+  .notif-item {
+    position: relative;
+    padding-right: 40px;
+  }
+
+  /* Close Notification Button - Main notifications */
+  .close-notif {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 20;
+    text-decoration: none;
+    line-height: 1;
+  }
+
+  .close-notif:hover {
+    background: rgba(255,255,255,0.4);
+    transform: scale(1.1);
+  }
+
+  /* Close Notification Button - Stock Opname */
+  .close-notif-so {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    background: rgba(0,0,0,0.1);
+    border: none;
+    color: #666;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    text-decoration: none;
+    line-height: 1;
+    z-index: 10;
+  }
+
+  .close-notif-so:hover {
+    background: rgba(0,0,0,0.2);
+    color: #000;
+  }
+
+  /* Confirmation Modal - Custom modal styling */
+  #confirmModal {
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  #confirmModal.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  #confirmModal .modal-content {
+    transform: scale(0.7);
+    transition: transform 0.3s ease;
+  }
+
+  #confirmModal.show .modal-content {
+    transform: scale(1);
+  }
+
+  /* Modal z-index utility */
+  .z-9999 {
+    z-index: 9999;
+  }
+
+  /* Progress Bar Container */
+  .progress-bar {
+    @apply h-2 sm:h-3 bg-red-500 rounded-full;
+  }
+
+  /* Product List Container - Fixed max height */
+  .product-list-container {
+    max-height: 700px;
+  }
+
+  /* Stock Opname History Item - Conditional border */
+  .so-history-item {
+    @apply bg-white p-3 rounded shadow-sm relative;
+  }
+
+  .so-history-item.missing {
+    @apply border-l-4 border-red-500;
+  }
+
+  .so-history-item.found {
+    @apply border-l-4 border-green-500;
+  }
+}
+
+/* ========================================
+   UTILITIES - Custom utility classes
+   ======================================== */
+@layer utilities {
+  /* Mobile Menu Button */
+  .mobile-menu-btn {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 100;
+    background: #1e3c72;
+    color: white;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  /* Smooth Transitions for all elements */
+  * {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+}
+
+/* ========================================
+   RESPONSIVE STYLES - Media queries
+   ======================================== */
+@media (max-width: 1000px) {
+  .judul {
+    margin-left: 3rem !important;
+  }
+}
+
+/* Mobile Menu Responsive Styles */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    z-index: 50;
+    height: 100vh;
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  .mobile-menu-btn {
+    display: block !important;
+  }
+}
+
+/* ========================================
+   PRINT STYLES - For transaction printing
+   ======================================== */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #detailContent,
+  #detailContent * {
+    visibility: visible;
+  }
+
+  #detailContent {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
