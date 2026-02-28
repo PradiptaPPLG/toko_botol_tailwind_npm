@@ -4,7 +4,7 @@ set -e
 
 BACKUP_DIR="/backups"
 DATE=$(date +%Y-%m-%d_%H-%M-%S)
-FILENAME="kasir_toko_${DATE}.sql.gz"
+FILENAME="pdk_${DATE}.sql.gz"
 
 # Keep only last 7 days of backups
 find "$BACKUP_DIR" -name "*.sql.gz" -mtime +7 -delete 2>/dev/null || true

@@ -31,22 +31,22 @@ services:
       - toko_network
 
   db:
-    image: mariadb:alpine
+    image: mariadb:10.11  # Gunakan versi LTS (Debian based lebih stabil untuk prod)
     container_name: toko_mariadb
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASS}
       MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_ALLOW_EMPTY_PASSWORD: "no"
     env_file:
       - .env
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
-      interval: 5s
+      # Menggunakan mysqladmin lebih aman daripada healthcheck.sh di berbagai OS
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${DB_PASS} || exit 1"]
+      interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 5
     networks:
       - toko_network
 
