@@ -10,20 +10,14 @@ include '../../includes/modal_confirm.php';
 
 $tanggal_mulai = $_GET['tanggal_mulai'] ?? date('Y-m-01');
 $tanggal_akhir = $_GET['tanggal_akhir'] ?? date('Y-m-d');
-$filter_keterangan = $_GET['keterangan'] ?? '';
 
-$sql_keterangan = '';
-if ($filter_keterangan !== '') {
-    $filter_keterangan_escaped = escape_string($filter_keterangan);
-    $sql_keterangan = " AND keterangan LIKE '%$filter_keterangan_escaped%'";
-}
+
 
 $pengeluaran = query("
     SELECT *
     FROM pengeluaran
     WHERE DATE(created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'
     AND deleted_at IS NULL
-    $sql_keterangan
     ORDER BY created_at DESC
 ");
 
@@ -36,28 +30,25 @@ $total_pengeluaran = array_sum(array_column($pengeluaran, 'nominal'));
 
     <!-- Filter -->
     <div class="bg-white rounded-lg shadow p-4 mb-6">
-        <form method="GET" class="flex flex-wrap md:flex-nowrap items-end gap-3">
+        <form method="GET" id="filter-form" class="flex flex-wrap md:flex-nowrap items-end gap-3">
             <div class="flex-1 min-w-35">
                 <label class="block text-gray-700 font-medium mb-1 text-xs uppercase tracking-wider">📅 Mulai</label>
                 <label>
-                    <input type="date" name="tanggal_mulai" value="<?= $tanggal_mulai ?>" class="w-full border rounded-lg p-2 text-sm">
+                    <input type="date" name="tanggal_mulai" value="<?= $tanggal_mulai ?>" class="w-full border rounded-lg p-2 text-sm" onchange="document.getElementById('filter-form').submit()">
                 </label>
             </div>
             <div class="flex-1 min-w-35">
                 <label class="block text-gray-700 font-medium mb-1 text-xs uppercase tracking-wider">📅 Akhir</label>
                 <label>
-                    <input type="date" name="tanggal_akhir" value="<?= $tanggal_akhir ?>" class="w-full border rounded-lg p-2 text-sm">
+                    <input type="date" name="tanggal_akhir" value="<?= $tanggal_akhir ?>" class="w-full border rounded-lg p-2 text-sm" onchange="document.getElementById('filter-form').submit()">
                 </label>
             </div>
             <div class="flex-1 min-w-[140px]">
                 <label class="block text-gray-700 font-medium mb-1 text-xs uppercase tracking-wider">🔎 Keterangan</label>
-                <label>
-                    <input type="text" name="keterangan" value="<?= htmlspecialchars($filter_keterangan) ?>" class="w-full border rounded-lg p-2 text-sm" placeholder="Cari keterangan...">
-                </label>
+                <input type="text" id="filter-keterangan" oninput="filterKeterangan()" class="w-full border rounded-lg p-2 text-sm" placeholder="Cari keterangan...">
             </div>
-            <div class="w-full md:w-auto">
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg text-sm">🔍 CARI</button>
-            </div>
+
+
         </form>
     </div>
 
@@ -96,7 +87,7 @@ $total_pengeluaran = array_sum(array_column($pengeluaran, 'nominal'));
                 <tbody>
                     <?php if (!empty($pengeluaran)): ?>
                         <?php foreach ($pengeluaran as $p): ?>
-                        <tr class="border-b hover:bg-gray-50">
+                        <tr class="pengeluaran-row border-b hover:bg-gray-50" data-keterangan="<?= strtolower(htmlspecialchars($p['keterangan'])) ?>">
                             <td class="p-3 text-sm">
                                 <?= date('d/m/y', strtotime($p['created_at'])) ?>
                                 <span class="text-gray-400"><?= date('H:i', strtotime($p['created_at'])) ?></span>
@@ -126,6 +117,15 @@ $total_pengeluaran = array_sum(array_column($pengeluaran, 'nominal'));
         <p>Laporan ini mengambil data langsung dari tabel <span class="font-mono font-semibold">pengeluaran</span> yang dicatat melalui menu <span class="font-semibold">Pengeluaran</span>.</p>
     </div>
 </div>
+
+<script>
+function filterKeterangan() {
+    const term = document.getElementById('filter-keterangan').value.toLowerCase();
+    document.querySelectorAll('.pengeluaran-row').forEach(row => {
+        row.style.display = row.getAttribute('data-keterangan').includes(term) ? '' : 'none';
+    });
+}
+</script>
 
 <?php include '../../includes/layout_footer.php'; ?>
 
