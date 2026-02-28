@@ -1,3 +1,7 @@
+# Composer dependencies
+vendor/
+.env
+
 # Node.js dependencies
 node_modules/
 npm-debug.log*
@@ -5,7 +9,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Build output (Tailwind CSS)
-dist/tailwind.css
+src/dist/tailwind.css
 
 # IDE files
 .idea/
@@ -13,10 +17,11 @@ dist/tailwind.css
 *.swp
 *.swo
 *~
-
-# Environment & Configuration
-includes/config.php
+.history/
 
 # Operating System files
 .DS_Store
 Thumbs.db
+
+# Docker
+.docker_migrated
