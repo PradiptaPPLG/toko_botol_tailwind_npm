@@ -1,0 +1,420 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Database Migration Command
+ *
+ * Usage:
+ *   php migrate              - Run pending migrations
+ *   php migrate status       - Show migration status
+ *   php migrate fresh        - Drop all tables and re-run ALL migrations
+ *   php migrate rollback     - Rollback last batch of migrations
+ *   php migrate db:seed      - Run all database seeders
+ *   php migrate fresh --seed - Fresh migration + seed in one command
+ */
+
+// ─── Bootstrap ────────────────────────────────────────────────────────────────
+
+$config_file = __DIR__ . '/src/includes/config.php';
+
+// Load DB credentials WITHOUT starting a session (CLI context)
+// We pull the variables by evaluating only the credential lines
+$raw = file_get_contents($config_file);
+preg_match('/\$host\s*=\s*[\'"](.+?)[\'"]\s*;/', $raw, $m_host);
+preg_match('/\$user\s*=\s*[\'"](.+?)[\'"]\s*;/', $raw, $m_user);
+preg_match('/\$pass\s*=\s*[\'"](.+?)[\'"]\s*;/', $raw, $m_pass);
+preg_match('/\$dbname\s*=\s*[\'"](.+?)[\'"]\s*;/', $raw, $m_db);
+
+$db_host = $m_host[1] ?? 'localhost';
+$db_user = $m_user[1] ?? 'root';
+$db_pass = $m_pass[1] ?? '';
+$db_name = $m_db[1]   ?? 'kasir_toko';
+
+// Connect without selecting a database first (needed for fresh)
+$conn = new mysqli($db_host, $db_user, $db_pass);
+if ($conn->connect_error) {
+    echo "\033[31mDatabase connection failed: " . $conn->connect_error . "\033[0m\n";
+    exit(1);
+}
+$conn->set_charset('utf8mb4');
+
+// Ensure database exists and select it
+$conn->query("CREATE DATABASE IF NOT EXISTS `$db_name` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
+$conn->select_db($db_name);
+
+// Load base classes
+require_once __DIR__ . '/src/includes/Migration.php';
+require_once __DIR__ . '/src/includes/Seeder.php';
+
+// ─── Colors ───────────────────────────────────────────────────────────────────
+
+define('C_GREEN',  "\033[32m");
+define('C_YELLOW', "\033[33m");
+define('C_RED',    "\033[31m");
+define('C_BLUE',   "\033[34m");
+define('C_CYAN',   "\033[36m");
+define('C_RESET',  "\033[0m");
+
+// ─── Migration Runner ─────────────────────────────────────────────────────────
+
+class MigrationRunner
+{
+    private $conn;
+    private string $migrations_dir;
+    private string $seeders_dir;
+
+    public function __construct($conn)
+    {
+        $this->conn           = $conn;
+        $this->migrations_dir = __DIR__ . '/src/database/migrations';
+        $this->seeders_dir    = __DIR__ . '/src/database/seeders';
+    }
+
+    // ── Migrations table ──────────────────────────────────────────────────────
+
+    private function ensureMigrationsTable(): void
+    {
+        $sql = "CREATE TABLE IF NOT EXISTS `migrations` (
+            `id`          INT(11)      NOT NULL AUTO_INCREMENT,
+            `migration`   VARCHAR(255) NOT NULL,
+            `batch`       INT(11)      NOT NULL DEFAULT 1,
+            `executed_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `migration_unique` (`migration`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
+
+        $this->conn->query($sql);
+    }
+
+    // ── File discovery ────────────────────────────────────────────────────────
+
+    private function getMigrationFiles(): array
+    {
+        if (!is_dir($this->migrations_dir)) {
+            mkdir($this->migrations_dir, 0755, true);
+        }
+
+        $files = glob($this->migrations_dir . '/*.php');
+        sort($files);
+
+        return array_map('basename', $files);
+    }
+
+    private function getExecutedMigrations(): array
+    {
+        $result  = $this->conn->query("SELECT migration FROM migrations ORDER BY id");
+        $executed = [];
+        if ($result && $result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $executed[] = $row['migration'];
+            }
+        }
+        return $executed;
+    }
+
+    private function getPendingMigrations(): array
+    {
+        return array_values(array_diff($this->getMigrationFiles(), $this->getExecutedMigrations()));
+    }
+
+    private function getNextBatch(): int
+    {
+        $result = $this->conn->query("SELECT MAX(batch) as max_batch FROM migrations");
+        $row    = $result->fetch_assoc();
+        return ($row['max_batch'] ?? 0) + 1;
+    }
+
+    // ── Load & instantiate migration class ────────────────────────────────────
+
+    private function loadMigration(string $filename): Migration
+    {
+        $filepath   = $this->migrations_dir . '/' . $filename;
+        $class_name = $this->filenameToClass($filename);
+
+        if (!class_exists($class_name)) {
+            require_once $filepath;
+        }
+
+        return new $class_name($this->conn);
+    }
+
+    /**
+     * Convert filename to class name.
+     * e.g. "2026_02_24_000001_create_admin_table.php"
+     *   → "CreateAdminTable"
+     */
+    private function filenameToClass(string $filename): string
+    {
+        // Strip timestamp prefix (YYYY_MM_DD_NNNNNN_) and extension
+        $name = preg_replace('/^\d{4}_\d{2}_\d{2}_\d+_/', '', $filename);
+        $name = str_replace('.php', '', $name);
+
+        // Convert snake_case to PascalCase
+        return str_replace('_', '', ucwords($name, '_'));
+    }
+
+    // ── Commands ──────────────────────────────────────────────────────────────
+
+    public function migrate(): void
+    {
+        $this->ensureMigrationsTable();
+
+        $pending = $this->getPendingMigrations();
+
+        if (empty($pending)) {
+            echo C_YELLOW . "Nothing to migrate.\n" . C_RESET;
+            return;
+        }
+
+        $batch      = $this->getNextBatch();
+        $start_time = microtime(true);
+
+        echo C_BLUE . "Running migrations...\n\n" . C_RESET;
+
+        foreach ($pending as $filename) {
+            try {
+                $t = microtime(true);
+
+                echo "Migrating: " . C_YELLOW . $filename . C_RESET . "\n";
+
+                $migration = $this->loadMigration($filename);
+                $migration->up();
+
+                $stmt = $this->conn->prepare("INSERT INTO migrations (migration, batch) VALUES (?, ?)");
+                $stmt->bind_param("si", $filename, $batch);
+                $stmt->execute();
+
+                $ms = round((microtime(true) - $t) * 1000, 2);
+                echo C_GREEN . "✓ Migrated:  " . C_RESET . $filename . C_BLUE . " ({$ms}ms)\n" . C_RESET;
+
+            } catch (Exception $e) {
+                echo C_RED . "✗ Failed:    $filename\n   " . $e->getMessage() . "\n" . C_RESET;
+                exit(1);
+            }
+        }
+
+        $total = round((microtime(true) - $start_time) * 1000, 2);
+        echo "\n" . C_GREEN . "Migration completed! " . C_RESET . "({$total}ms)\n";
+    }
+
+    public function status(): void
+    {
+        $this->ensureMigrationsTable();
+
+        $all      = $this->getMigrationFiles();
+        $executed = $this->getExecutedMigrations();
+
+        if (empty($all)) {
+            echo C_YELLOW . "No migration files found.\n" . C_RESET;
+            return;
+        }
+
+        $result    = $this->conn->query("SELECT migration, batch FROM migrations");
+        $batch_map = [];
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $batch_map[$row['migration']] = $row['batch'];
+            }
+        }
+
+        echo "\n" . C_BLUE . "Migration Status:\n" . C_RESET;
+        echo str_repeat("-", 85) . "\n";
+        printf("%-6s %-65s %s\n", "Ran?", "Migration", "Batch");
+        echo str_repeat("-", 85) . "\n";
+
+        foreach ($all as $migration) {
+            $is_exec = in_array($migration, $executed);
+            $status  = $is_exec ? C_GREEN . "Yes" . C_RESET : C_YELLOW . "No " . C_RESET;
+            $batch   = $is_exec ? $batch_map[$migration] : "-";
+            printf("%-15s %-65s %s\n", $status, $migration, $batch);
+        }
+
+        echo str_repeat("-", 85) . "\n\n";
+
+        $exec_count    = count($executed);
+        $pending_count = count($all) - $exec_count;
+
+        echo "Total:    " . C_BLUE   . count($all)     . C_RESET . " migration(s)\n";
+        echo "Executed: " . C_GREEN  . $exec_count      . C_RESET . "\n";
+        echo "Pending:  " . C_YELLOW . $pending_count   . C_RESET . "\n\n";
+    }
+
+    public function rollback(): void
+    {
+        $this->ensureMigrationsTable();
+
+        // Get last batch
+        $result = $this->conn->query("SELECT MAX(batch) as last_batch FROM migrations");
+        $row    = $result->fetch_assoc();
+        $last_batch = $row['last_batch'];
+
+        if (!$last_batch) {
+            echo C_YELLOW . "Nothing to rollback.\n" . C_RESET;
+            return;
+        }
+
+        $result = $this->conn->query("SELECT migration FROM migrations WHERE batch = $last_batch ORDER BY id DESC");
+        $batch_migrations = [];
+        while ($row = $result->fetch_assoc()) {
+            $batch_migrations[] = $row['migration'];
+        }
+
+        echo C_BLUE . "Rolling back batch $last_batch...\n\n" . C_RESET;
+
+        foreach ($batch_migrations as $filename) {
+            try {
+                $t = microtime(true);
+
+                echo "Rolling back: " . C_YELLOW . $filename . C_RESET . "\n";
+
+                $this->conn->query("SET FOREIGN_KEY_CHECKS = 0");
+                $migration = $this->loadMigration($filename);
+                $migration->down();
+                $this->conn->query("SET FOREIGN_KEY_CHECKS = 1");
+
+                $stmt = $this->conn->prepare("DELETE FROM migrations WHERE migration = ?");
+                $stmt->bind_param("s", $filename);
+                $stmt->execute();
+
+                $ms = round((microtime(true) - $t) * 1000, 2);
+                echo C_GREEN . "✓ Rolled back: " . C_RESET . $filename . C_BLUE . " ({$ms}ms)\n" . C_RESET;
+
+            } catch (Exception $e) {
+                echo C_RED . "✗ Failed:  $filename\n   " . $e->getMessage() . "\n" . C_RESET;
+                exit(1);
+            }
+        }
+
+        echo "\n" . C_GREEN . "Rollback complete.\n" . C_RESET;
+    }
+
+    public function fresh(bool $seed = false): void
+    {
+        echo C_RED . "⚠  WARNING: This will DROP ALL TABLES in the database!\n" . C_RESET;
+        echo "Are you sure? Type 'yes' to continue: ";
+
+        $handle = fopen("php://stdin", "r");
+        $line   = fgets($handle);
+        fclose($handle);
+
+        if (trim($line) !== 'yes') {
+            echo C_YELLOW . "Aborted.\n" . C_RESET;
+            return;
+        }
+
+        echo C_BLUE . "\nDropping all tables...\n" . C_RESET;
+
+        $result = $this->conn->query("SHOW TABLES");
+        $tables = [];
+        while ($row = $result->fetch_array()) {
+            $tables[] = $row[0];
+        }
+
+        $this->conn->query("SET FOREIGN_KEY_CHECKS = 0");
+        foreach ($tables as $table) {
+            echo "  Dropping: $table\n";
+            $this->conn->query("DROP TABLE IF EXISTS `$table`");
+        }
+        $this->conn->query("SET FOREIGN_KEY_CHECKS = 1");
+
+        echo C_GREEN . "All tables dropped.\n\n" . C_RESET;
+
+        $this->migrate();
+
+        if ($seed) {
+            echo "\n";
+            $this->seed();
+        }
+    }
+
+    public function seed(): void
+    {
+        $master = $this->seeders_dir . '/DatabaseSeeder.php';
+
+        if (!file_exists($master)) {
+            echo C_RED . "DatabaseSeeder.php not found in {$this->seeders_dir}\n" . C_RESET;
+            exit(1);
+        }
+
+        require_once $master;
+
+        echo C_BLUE . "Running seeders...\n\n" . C_RESET;
+
+        $seeder_classes = [
+            'AdminSeeder',
+            'CabangSeeder',
+            'ProdukSeeder',
+            'StokCabangSeeder',
+        ];
+
+        $start_time = microtime(true);
+
+        foreach ($seeder_classes as $class) {
+            try {
+                $t = microtime(true);
+                echo "Seeding: " . C_CYAN . $class . C_RESET . "\n";
+
+                $seeder = new $class($this->conn);
+                $seeder->run();
+
+                $ms = round((microtime(true) - $t) * 1000, 2);
+                echo C_GREEN . "✓ Seeded:  " . C_RESET . $class . C_BLUE . " ({$ms}ms)\n" . C_RESET;
+
+            } catch (Exception $e) {
+                echo C_RED . "✗ Failed: $class\n   " . $e->getMessage() . "\n" . C_RESET;
+                exit(1);
+            }
+        }
+
+        $total = round((microtime(true) - $start_time) * 1000, 2);
+        echo "\n" . C_GREEN . "Seeding completed! " . C_RESET . "({$total}ms)\n";
+    }
+}
+
+// ─── Parse command ─────────────────────────────────────────────────────────────
+
+$command = $argv[1] ?? 'run';
+$flags   = array_slice($argv, 2);
+
+$runner = new MigrationRunner($conn);
+
+try {
+    switch ($command) {
+        case 'run':
+        case '':
+            $runner->migrate();
+            break;
+
+        case 'status':
+            $runner->status();
+            break;
+
+        case 'fresh':
+            $seed = in_array('--seed', $flags);
+            $runner->fresh($seed);
+            break;
+
+        case 'rollback':
+            $runner->rollback();
+            break;
+
+        case 'db:seed':
+            $runner->seed();
+            break;
+
+        default:
+            echo C_RED . "Unknown command: $command\n" . C_RESET;
+            echo "\nUsage:\n";
+            echo "  php migrate              Run pending migrations\n";
+            echo "  php migrate status       Show migration status\n";
+            echo "  php migrate fresh        Drop all tables & re-run migrations\n";
+            echo "  php migrate fresh --seed Drop all tables, migrate, then seed\n";
+            echo "  php migrate rollback     Rollback last migration batch\n";
+            echo "  php migrate db:seed      Run all seeders\n";
+            exit(1);
+    }
+} catch (Exception $e) {
+    echo C_RED . "Error: " . $e->getMessage() . "\n" . C_RESET;
+    exit(1);
+}
+
+$conn->close();
