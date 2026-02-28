@@ -31,8 +31,8 @@ services:
     image: mariadb:alpine
     container_name: toko_mariadb
     environment:
-      MYSQL_ROOT_PASSWORD: secret
-      MYSQL_DATABASE: kasir_toko
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
       MYSQL_ALLOW_EMPTY_PASSWORD: "no"
     env_file:
       - .env
@@ -45,22 +45,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    networks:
-      - toko_network
-
-  backup:
-    build:
-      context: .
-      dockerfile: docker/backup/Dockerfile
-    container_name: toko_backup
-    restart: unless-stopped
-    volumes:
-      - ./backups:/backups
-    env_file:
-      - .env
-    depends_on:
-      db:
-        condition: service_healthy
     networks:
       - toko_network
 

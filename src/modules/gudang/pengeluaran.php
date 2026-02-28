@@ -116,7 +116,7 @@ include '../../includes/modal_confirm.php';
     </div>
 
 <!-- Edit Pengeluaran Modal -->
-<div id="editPengeluaranModal" class="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center hidden">
+<div id="editPengeluaranModal" class="fixed inset-0 bg-transparent z-[9999] flex items-center justify-center hidden">
     <div class="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full mx-4">
         <h3 class="text-xl font-bold text-gray-800 mb-4">✏️ Edit Pengeluaran</h3>
         <form method="POST" id="editPengeluaranForm">

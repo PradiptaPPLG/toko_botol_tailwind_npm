@@ -35,8 +35,8 @@ services:
     container_name: toko_mariadb
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASS:-secret}
-      MYSQL_DATABASE: ${DB_NAME:-kasir_toko}
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
       MYSQL_ALLOW_EMPTY_PASSWORD: "no"
     env_file:
       - .env

@@ -353,7 +353,7 @@ $movements_page = array_slice($all_movements, $offset, $limit);
 </div>
 
 <!-- Batch Detail Modal -->
-<div id="batchDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+<div id="batchDetailModal" class="fixed inset-0 bg-transparent z-50 hidden items-center justify-center">
     <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div id="modalHeader" class="sticky top-0 bg-indigo-800 text-white p-4 flex justify-between items-center">
             <h3 id="modalTitle" class="text-xl font-bold">📦 DETAIL STOK MASUK</h3>

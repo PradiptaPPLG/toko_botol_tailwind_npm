@@ -1,6 +1,6 @@
 <!-- Custom Confirmation Modal -->
-<div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 z-9999 flex items-center justify-center opacity-0 invisible">
-    <div class="modal-content bg-white rounded-lg shadow-2xl p-6 max-w-md w-full mx-4">
+<div id="confirmModal" class="fixed inset-0 bg-transparent z-9999 flex items-center justify-center invisible transition-all duration-300">
+    <div class="modal-content bg-white rounded-lg shadow-2xl p-6 max-w-md w-full mx-4 transform scale-95 transition-transform duration-300">
         <div class="flex items-center mb-4">
             <span class="text-4xl mr-3" id="confirmIcon">⚠️</span>
             <h3 class="text-xl font-bold text-gray-800" id="confirmTitle">Konfirmasi</h3>
@@ -37,6 +37,7 @@ function customConfirm(message, title = 'Konfirmasi', icon = '⚠️', btnColor 
         const messageEl = document.getElementById('confirmMessage');
         const iconEl = document.getElementById('confirmIcon');
         const btnEl = document.getElementById('confirmBtn');
+        const modalContent = modal.querySelector('.modal-content');
 
         titleEl.textContent = title;
         messageEl.textContent = message;
@@ -46,11 +47,17 @@ function customConfirm(message, title = 'Konfirmasi', icon = '⚠️', btnColor 
         btnEl.className = `flex-1 bg-${btnColor}-600 hover:bg-${btnColor}-700 text-white font-bold py-3 px-4 rounded-lg transition-all`;
 
         window.confirmCallback = (result) => {
-            modal.classList.remove('show');
+            modal.classList.add('opacity-0', 'invisible');
+            modal.classList.remove('opacity-100', 'visible');
+            modalContent.classList.add('scale-95');
+            modalContent.classList.remove('scale-100');
             setTimeout(() => resolve(result), 300);
         };
 
-        modal.classList.add('show');
+        modal.classList.remove('opacity-0', 'invisible');
+        modal.classList.add('opacity-100', 'visible');
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
     });
 }
 
