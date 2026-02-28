@@ -1,6 +1,7 @@
 FROM alpine:3.20
 
-RUN apk add --no-cache mariadb-client gzip
+# install required tools (curl added for Telegram upload)
+RUN apk add --no-cache mariadb-client gzip curl
 
 COPY docker/backup/backup.sh /usr/local/bin/backup.sh
 RUN chmod +x /usr/local/bin/backup.sh

@@ -17,7 +17,7 @@ services:
       - toko_network
 
   php:
-    image: ${DOCKER_IMAGE:-ghcr.io/pradiptapplg/toko_botol_tailwind_npm:latest}
+    image: ${DOCKER_IMAGE:-ghcr.io/rafliaditya0125/toko_botol:latest}
     container_name: toko_php
     restart: unless-stopped
     volumes:
@@ -60,6 +60,9 @@ services:
       - ./backups:/backups
     env_file:
       - .env
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
     depends_on:
       db:
         condition: service_healthy

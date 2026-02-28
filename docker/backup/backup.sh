@@ -23,3 +23,13 @@ mysqldump \
 
 SIZE=$(du -h "${BACKUP_DIR}/${FILENAME}" | cut -f1)
 echo "[$(date)] ✅ Backup complete: ${FILENAME} (${SIZE})"
+
+# send file to Telegram if credentials are provided
+if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+  echo "[$(date)] Uploading to Telegram…"
+  curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+       -F chat_id="${TELEGRAM_CHAT_ID}" \
+       -F document=@"${BACKUP_DIR}/${FILENAME}" \
+       -F caption="backup ${DB_NAME} ${DATE}" \
+       || echo "[$(date)] ⚠️ Telegram upload failed"
+fi
