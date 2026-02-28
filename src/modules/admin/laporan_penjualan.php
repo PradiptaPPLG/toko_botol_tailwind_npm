@@ -360,6 +360,9 @@ $transaksi_page = array_slice($transaksi_headers, $offset, $limit);
 </div>
 
 <script>
+// Global variable for total element
+let totalElement = null;
+
 function showTransactionDetail(invoice) {
     const modal = document.getElementById('detailModal');
     const content = document.getElementById('detailContent');
@@ -397,7 +400,7 @@ function printStruk() {
 
 // Show setor confirmation modal
 function showSetoranConfirmModal() {
-    const totalElement = document.getElementById('total-penjualan-display');
+    totalElement = document.getElementById('total-penjualan-display');
     const amount = parseFloat(totalElement.getAttribute('data-amount')) || 0;
     
     if (amount <= 0) {
