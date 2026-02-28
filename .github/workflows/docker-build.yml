@@ -39,12 +39,32 @@ jobs:
             type=sha,prefix=
             type=raw,value=latest
 
-      - name: Build and push
+      - name: Build and push main app
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata for backup
+        id: meta-backup
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}-backup
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push backup
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/backup/Dockerfile
+          push: true
+          tags: ${{ steps.meta-backup.outputs.tags }}
+          labels: ${{ steps.meta-backup.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

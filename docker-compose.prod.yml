@@ -51,9 +51,7 @@ services:
       - toko_network
 
   backup:
-    build:
-      context: .
-      dockerfile: docker/backup/Dockerfile
+    image: ${BACKUP_IMAGE:-ghcr.io/rafliaditya0125/toko_botol-backup:latest}
     container_name: toko_backup
     restart: unless-stopped
     volumes:
