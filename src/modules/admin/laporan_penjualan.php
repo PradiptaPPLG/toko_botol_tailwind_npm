@@ -184,56 +184,6 @@ $transaksi_page = array_slice($transaksi_headers, $offset, $limit);
     </div>
     <?php endif; ?>
 
-    <!-- Setoran History -->
-    <?php if (!empty($setoran_list)): ?>
-    <div class="bg-white rounded-lg shadow overflow-hidden mb-6">
-        <div class="bg-blue-800 text-white p-4">
-            <h2 class="text-fluid-xl font-bold">💳 RIWAYAT SETORAN</h2>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-blue-50">
-                    <tr>
-                        <th class="p-3 text-left">Tanggal Setor</th>
-                        <th class="p-3 text-left">Periode</th>
-                        <th class="p-3 text-left">Cabang</th>
-                        <th class="p-3 text-right">Total Setor</th>
-                        <th class="p-3 text-left">Keterangan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($setoran_list as $s): ?>
-                    <tr class="border-b hover:bg-blue-50">
-                        <td class="p-3 text-fluid-sm">
-                            <?= date('d/m/Y H:i', strtotime($s['created_at'])) ?>
-                        </td>
-                        <td class="p-3 text-fluid-sm">
-                            <?= date('d/m/Y', strtotime($s['tanggal_dari'])) ?> - <?= date('d/m/Y', strtotime($s['tanggal_sampai'])) ?>
-                        </td>
-                        <td class="p-3 text-fluid-sm">
-                            <?php 
-                                if ($s['cabang_id'] == 0) {
-                                    echo '<span class="font-bold text-blue-600">🏢 Semua Cabang</span>';
-                                } else {
-                                    $cabang_name = query("SELECT nama_cabang FROM cabang WHERE id = {$s['cabang_id']}");
-                                    echo $cabang_name[0]['nama_cabang'] ?? 'N/A';
-                                }
-                            ?>
-                        </td>
-                        <td class="p-3 text-right font-bold text-blue-600">
-                            <?= rupiah($s['total_setor']) ?>
-                        </td>
-                        <td class="p-3 text-fluid-sm text-gray-600">
-                            <?= $s['keterangan'] ?? '-' ?>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <?php endif; ?>
-
     <!-- Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <div class="bg-gray-800 text-white p-4">
@@ -295,6 +245,56 @@ $transaksi_page = array_slice($transaksi_headers, $offset, $limit);
         <?php endif; ?>
     </div>
 </div>
+
+    <!-- Setoran History -->
+    <?php if (!empty($setoran_list)): ?>
+    <div class="bg-white rounded-lg shadow overflow-hidden mb-6">
+        <div class="bg-blue-800 text-black p-4">
+            <h2 class="text-fluid-xl font-bold">💳 RIWAYAT SETORAN</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-blue-50">
+                    <tr>
+                        <th class="p-3 text-left">Tanggal Setor</th>
+                        <th class="p-3 text-left">Periode</th>
+                        <th class="p-3 text-left">Cabang</th>
+                        <th class="p-3 text-right">Total Setor</th>
+                        <th class="p-3 text-left">Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($setoran_list as $s): ?>
+                    <tr class="border-b hover:bg-blue-50">
+                        <td class="p-3 text-fluid-sm">
+                            <?= date('d/m/Y H:i', strtotime($s['created_at'])) ?>
+                        </td>
+                        <td class="p-3 text-fluid-sm">
+                            <?= date('d/m/Y', strtotime($s['tanggal_dari'])) ?> - <?= date('d/m/Y', strtotime($s['tanggal_sampai'])) ?>
+                        </td>
+                        <td class="p-3 text-fluid-sm">
+                            <?php 
+                                if ($s['cabang_id'] == 0) {
+                                    echo '<span class="font-bold text-blue-600">🏢 Semua Cabang</span>';
+                                } else {
+                                    $cabang_name = query("SELECT nama_cabang FROM cabang WHERE id = {$s['cabang_id']}");
+                                    echo $cabang_name[0]['nama_cabang'] ?? 'N/A';
+                                }
+                            ?>
+                        </td>
+                        <td class="p-3 text-right font-bold text-blue-600">
+                            <?= rupiah($s['total_setor']) ?>
+                        </td>
+                        <td class="p-3 text-fluid-sm text-gray-600">
+                            <?= $s['keterangan'] ?? '-' ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <?php endif; ?>
 
 <!-- Transaction Detail Modal -->
 <div id="detailModal" class="fixed inset-0 bg-transparent z-9999 hidden items-center justify-center">

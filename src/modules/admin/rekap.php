@@ -10,11 +10,17 @@ include '../../includes/modal_confirm.php';
 
 $tanggal_mulai = $_GET['tanggal_mulai'] ?? date('Y-m-01'); // Default to start of current month
 $tanggal_akhir = $_GET['tanggal_akhir'] ?? date('Y-m-d');
+$cabang_filter = $_GET['cabang_id'] ?? ''; // Branch filter
 
 // ====== FETCH ALL BRANCHES ======
 $cabang_list = query("SELECT * FROM cabang ORDER BY id");
 
 // ====== PER-PRODUCT PER-BRANCH SALES DATA ======
+$where_clause = "WHERE DATE(th.created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'";
+if (!empty($cabang_filter)) {
+    $where_clause .= " AND th.cabang_id = '$cabang_filter'";
+}
+
 $sales_data = query("
     SELECT 
         td.produk_id,
@@ -26,7 +32,7 @@ $sales_data = query("
     FROM transaksi_detail td
     JOIN transaksi_header th ON td.transaksi_header_id = th.id
     LEFT JOIN produk p ON td.produk_id = p.id
-    WHERE DATE(th.created_at) BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'
+    $where_clause
     GROUP BY td.produk_id, td.nama_produk, p.harga_beli, th.cabang_id
     ORDER BY td.nama_produk
 ");
@@ -139,6 +145,17 @@ $is_rugi = $keuntungan_bersih < 0;
                 <label>
                     <input type="date" name="tanggal_akhir" value="<?= $tanggal_akhir ?>" class="w-full border rounded-lg p-2 text-sm" onchange="document.getElementById('filter-form').submit()">
                 </label>
+            </div>
+            <div class="flex-1 min-w-35">
+                <label class="block text-gray-700 font-medium mb-1 text-xs uppercase tracking-wider">🏢 Cabang</label>
+                <select name="cabang_id" class="w-full border rounded-lg p-2 text-sm" onchange="document.getElementById('filter-form').submit()">
+                    <option value="">Semua Cabang</option>
+                    <?php foreach ($cabang_list as $cab): ?>
+                        <option value="<?= $cab['id'] ?>" <?= $cabang_filter == $cab['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($cab['nama_cabang']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
 
