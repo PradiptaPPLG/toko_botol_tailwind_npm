@@ -167,7 +167,7 @@ $cek_hilang = cek_selisih_stok();
                 <?php foreach ($cek_hilang as $w): ?>
                     <div class="bg-red-700 p-3 lg:p-4 mb-3 rounded text-sm lg:text-lg notif-item" id="notif-<?= $w['id'] ?>">
                         <!-- Tombol Close dengan parameter op -->
-                        <a href="?dismiss=1&id=<?= $w['id'] ?>&op=<?= $current_op ?>" class="close-notif" onclick="return confirm('Tutup notifikasi ini?')" title="Tutup notifikasi">&times;</a>
+                        <a href="#" onclick="event.preventDefault(); customConfirm('Tutup notifikasi ini?', 'Konfirmasi', '⚠️', 'yellow').then(res => { if(res) window.location.href='?dismiss=1&id=<?= $w['id'] ?>&op=<?= $current_op ?>'; })" class="close-notif" title="Tutup notifikasi">&times;</a>
 
                         <div class="flex justify-between items-center mb-2">
                             <span class="font-bold text-lg lg:text-xl"><?= $w['produk'] ?></span>
@@ -450,7 +450,7 @@ $cek_hilang = cek_selisih_stok();
                                 <?php foreach ($so_history as $so): ?>
                                     <div class="so-history-item <?= $so['status'] == 'HILANG' ? 'missing' : 'found' ?>">
                                         <!-- Tombol X dengan parameter op -->
-                                        <a href="?dismiss_so=1&id=<?= $so['id'] ?>&op=<?= $current_op ?>" class="close-notif-so" onclick="return confirm('Hapus riwayat ini?')" title="Hapus">&times;</a>
+                                        <a href="#" onclick="event.preventDefault(); confirmDelete('Hapus riwayat ini?').then(res => { if(res) window.location.href='?dismiss_so=1&id=<?= $so['id'] ?>&op=<?= $current_op ?>'; })" class="close-notif-so" title="Hapus">&times;</a>
 
                                         <div class="flex justify-between">
                                             <span class="font-bold"><?= $so['nama_produk'] ?></span>
@@ -532,7 +532,7 @@ $cek_hilang = cek_selisih_stok();
         </div>
 
 <!-- Edit Pengeluaran Modal (index.php) -->
-<div id="editPengeluaranModal" class="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center hidden">
+<div id="editPengeluaranModal" class="fixed inset-0 bg-transparent z-[9999] flex items-center justify-center hidden">
     <div class="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full mx-4">
         <h3 class="text-xl font-bold text-gray-800 mb-4">✏️ Edit Pengeluaran</h3>
         <form method="POST" id="editPengeluaranForm">
@@ -656,8 +656,8 @@ $cek_hilang = cek_selisih_stok();
             btn.disabled = false;
         }
 
-        function clearCartMasuk() {
-            if (confirm('Kosongkan keranjang?')) {
+        async function clearCartMasuk() {
+            if (await confirmClear('Kosongkan keranjang?')) {
                 cartMasuk = [];
                 renderCartMasuk();
             }
@@ -769,8 +769,8 @@ $cek_hilang = cek_selisih_stok();
             btn.disabled = false;
         }
 
-        function clearCartKeluar() {
-            if (confirm('Kosongkan keranjang?')) {
+        async function clearCartKeluar() {
+            if (await confirmClear('Kosongkan keranjang?')) {
                 cartKeluar = [];
                 renderCartKeluar();
             }

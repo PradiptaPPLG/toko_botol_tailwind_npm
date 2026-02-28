@@ -118,9 +118,23 @@ function stripThousand(str) {
     return str.toString().replace(/\./g, '');
 }
 
-// Auto-apply thousand separator to all inputs with class 'format-number'
+// Auto-apply thousand separator to ALL number inputs
 document.addEventListener('DOMContentLoaded', function() {
     function initFormatNumber() {
+        // Convert all type="number" to type="text" with inputmode="numeric"
+        // so that dot thousand separators are allowed by the browser
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            if (input.dataset.formatConverted) return;
+            input.dataset.formatConverted = '1';
+            // Preserve min/max/step as data attributes for manual validation
+            if (input.min) input.dataset.min = input.min;
+            if (input.max) input.dataset.max = input.max;
+            input.type = 'text';
+            input.inputMode = 'numeric';
+            input.classList.add('format-number');
+        });
+
+        // Apply formatting to all .format-number inputs
         document.querySelectorAll('.format-number').forEach(input => {
             if (input.dataset.formatBound) return;
             input.dataset.formatBound = '1';

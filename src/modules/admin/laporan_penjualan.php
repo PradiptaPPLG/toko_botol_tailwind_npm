@@ -221,7 +221,7 @@ $transaksi_page = array_slice($transaksi_headers, $offset, $limit);
 </div>
 
 <!-- Transaction Detail Modal -->
-<div id="detailModal" class="fixed inset-0 bg-black bg-opacity-50 z-9999 hidden items-center justify-center">
+<div id="detailModal" class="fixed inset-0 bg-transparent z-9999 hidden items-center justify-center">
     <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div class="sticky top-0 bg-gray-800 text-white p-4 flex justify-between items-center">
             <h3 class="text-xl font-bold">📄 DETAIL TRANSAKSI</h3>

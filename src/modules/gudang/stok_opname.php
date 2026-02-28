@@ -59,7 +59,7 @@ include '../../includes/modal_confirm.php';
                 </div>
                 <?php foreach ($cek_hilang as $w): ?>
                     <div class="bg-red-700 p-3 lg:p-4 mb-3 rounded notif-item">
-                        <a href="?dismiss=1&id=<?= $w['id'] ?>" class="close-notif" onclick="return confirm('Tutup?')">&times;</a>
+                        <a href="#" onclick="event.preventDefault(); customConfirm('Tutup?', 'Konfirmasi', '⚠️', 'yellow').then(res => { if(res) window.location.href='?dismiss=1&id=<?= $w['id'] ?>'; })" class="close-notif" title="Tutup notifikasi">&times;</a>
                         <div class="flex justify-between items-center mb-2">
                             <span class="font-bold"><?= $w['produk'] ?></span>
                             <span class="text-xs"><?= date('d/m/Y', strtotime($w['tanggal'])) ?></span>
@@ -131,7 +131,7 @@ include '../../includes/modal_confirm.php';
                         <?php foreach ($so_history as $so): ?>
                             <div class="bg-white p-3 rounded shadow-sm relative <?= $so['status'] == 'HILANG' ? 'border-l-4 border-red-500' : 'border-l-4 border-green-500' ?>">
                                 <!-- Tombol X -->
-                                <a href="?dismiss_so=1&id=<?= $so['id'] ?>" class="close-notif-so" onclick="return confirm('Hapus riwayat ini?')" title="Hapus">&times;</a>
+                                <a href="#" onclick="event.preventDefault(); confirmDelete('Hapus riwayat ini?').then(res => { if(res) window.location.href='?dismiss_so=1&id=<?= $so['id'] ?>'; })" class="close-notif-so" title="Hapus">&times;</a>
 
                                 <!-- Nama Produk -->
                                 <div class="font-bold pr-6"><?= $so['nama_produk'] ?></div>

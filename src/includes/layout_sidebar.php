@@ -15,7 +15,7 @@ $root_path = $root ?? '';
 </div>
 
 <!-- Overlay Mobile -->
-<div id="overlay" class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 hidden transition-opacity duration-300"></div>
+<div id="overlay" class="lg:hidden fixed inset-0 bg-transparent z-40 hidden transition-opacity duration-300"></div>
 
 <!-- FLEX CONTAINER UTAMA -->
 <div class="flex h-screen bg-gray-100">
@@ -203,9 +203,9 @@ $root_path = $root ?? '';
                     <a href="<?= $root_path ?>logout.php"
                        onclick="event.preventDefault();
                                 if(typeof confirmLogout === 'function') {
-                                    confirmLogout().then(res => { if(res) window.location.href='<?= $root_path ?>logout.php'; });
-                                } else if(confirm('Yakin ingin keluar?')) {
-                                    window.location.href='<?= $root_path ?>logout.php';
+                                    confirmLogout().then(res => { 
+                                        if(res) window.location.href='<?= $root_path ?>logout.php'; 
+                                    });
                                 }"
                        class="flex items-center p-3 rounded-lg transition-all duration-200 hover:bg-red-600 hover:shadow-lg text-red-200 hover:text-white">
                         <span class="text-xl mr-3">🚪</span>

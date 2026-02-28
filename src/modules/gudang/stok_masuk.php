@@ -160,7 +160,7 @@ include '../../includes/modal_confirm.php';
     </div>
 
 <!-- Harga Beli Modal -->
-<div id="hargaBeliModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+<div id="hargaBeliModal" class="fixed inset-0 bg-transparent z-50 hidden flex items-center justify-center">
     <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
         <h3 class="text-lg font-bold text-gray-800 mb-1" id="harga-modal-title">📦 Input Stok Masuk (DUS)</h3>
         <p class="text-sm text-gray-500 mb-4" id="harga-modal-nama"></p>
@@ -267,7 +267,7 @@ include '../../includes/modal_confirm.php';
             document.getElementById('harga-modal-input').value = '';
             
             document.getElementById('harga-modal-confirm').onclick = function() {
-                const jumlah = parseInt(document.getElementById('jumlah-modal-input').value) || 0;
+                const jumlah = parseInt(stripThousand(document.getElementById('jumlah-modal-input').value)) || 0;
                 const harga = parseFloat(stripThousand(document.getElementById('harga-modal-input').value)) || 0;
                 
                 if (jumlah <= 0) { alert('Jumlah harus lebih dari 0'); return; }
@@ -304,7 +304,7 @@ include '../../includes/modal_confirm.php';
         }
 
         function setQtyMasuk(index, value) {
-            let newQty = parseInt(value) || 0;
+            let newQty = parseInt(stripThousand(value)) || 0;
             if (newQty <= 0) {
                 cartMasuk.splice(index, 1);
             } else {
@@ -326,7 +326,7 @@ include '../../includes/modal_confirm.php';
             document.getElementById('harga-modal-input').value = item.harga_beli || '';
             
             document.getElementById('harga-modal-confirm').onclick = function() {
-                const jumlah = parseInt(document.getElementById('jumlah-modal-input').value) || 0;
+                const jumlah = parseInt(stripThousand(document.getElementById('jumlah-modal-input').value)) || 0;
                 const harga = parseFloat(stripThousand(document.getElementById('harga-modal-input').value)) || 0;
                 
                 if (jumlah <= 0) { alert('Jumlah harus lebih dari 0'); return; }
