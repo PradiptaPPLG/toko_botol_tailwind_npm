@@ -62,9 +62,12 @@ include '../../includes/modal_confirm.php';
             <h2 class="text-xl font-bold">📦 DETAIL STOK PRODUK (TOTAL SEMUA CABANG)</h2>
         </div>
         <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="mb-4">
+                <input type="text" id="search-produk" oninput="filterProduk()" placeholder="🔍 Cari produk..." class="w-full border rounded-lg p-2 text-sm">
+            </div>
+            <div id="produk-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <?php foreach ($stok_total as $item): ?>
-                <div class="bg-gray-50 rounded-lg border-2 border-gray-200 p-4 hover:shadow-lg transition-all">
+                <div class="stok-card bg-gray-50 rounded-lg border-2 border-gray-200 p-4 hover:shadow-lg transition-all" data-nama="<?= strtolower(htmlspecialchars($item['nama_produk'])) ?>">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-3xl">🥤</span>
                         <?php
@@ -121,6 +124,15 @@ include '../../includes/modal_confirm.php';
         </p>
     </div>
 </div>
+
+<script>
+function filterProduk() {
+    const term = document.getElementById('search-produk').value.toLowerCase();
+    document.querySelectorAll('#produk-grid .stok-card').forEach(card => {
+        card.style.display = card.getAttribute('data-nama').includes(term) ? '' : 'none';
+    });
+}
+</script>
 
 <?php include '../../includes/layout_footer.php'; ?>
 

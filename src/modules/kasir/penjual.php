@@ -126,13 +126,17 @@ $rekap = query("
                         <button onclick="setGlobalUnit('dus')" id="unit-dus" class="px-3 py-1 rounded text-xs font-semibold text-gray-500">Dus</button>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                <div class="mb-3">
+                    <input type="text" id="search-produk" oninput="filterProduk()" placeholder="🔍 Cari produk..." class="w-full border rounded-lg p-2 text-sm">
+                </div>
+                <div id="produk-grid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                     <?php foreach ($produk as $p): ?>
                         <?php
                             $stok = get_stok_cabang($p['id'], $cabang_id);
                             $is_empty = $stok <= 0;
                         ?>
                         <div class="product-card bg-white border-2 border-gray-200 rounded-lg p-3 <?= $is_empty ? 'opacity-40 grayscale pointer-events-none' : '' ?>"
+                             data-nama="<?= strtolower(htmlspecialchars($p['nama_produk'])) ?>"
                          onclick="handleAddToCart(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>', <?= $stok ?>, <?= $p['harga_beli'] ?? 0 ?>, <?= $p['botol_perdus'] ?? 12 ?>)">
                             <div class="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg h-20 flex items-center justify-center mb-2">
                                 <span class="text-3xl">🥤</span>
@@ -182,6 +186,14 @@ $rekap = query("
 let cart = [];
 let globalUnit = 'botol';
 
+function filterProduk() {
+    const term = document.getElementById('search-produk').value.toLowerCase();
+    document.querySelectorAll('#produk-grid .product-card').forEach(card => {
+        const nama = card.getAttribute('data-nama') || '';
+        card.style.display = nama.includes(term) ? '' : 'none';
+    });
+}
+
 function setGlobalUnit(unit) {
     globalUnit = unit;
     const btnBotol = document.getElementById('unit-botol');
@@ -201,21 +213,21 @@ function handleAddToCart(id, nama, stok, hargaBeli, botolPerdus) {
     const defaultHarga = 0;
     const bpd = botolPerdus || 12;
     const hargaBeliRef = satuan === 'dus' ? hargaBeli * bpd : hargaBeli;
-    openHargaTawarModal(nama + ' (' + satuan.toUpperCase() + ')', defaultHarga, hargaBeliRef, function(hargaTawar) {
-        if (hargaTawar > 0) {
+    openHargaTawarModal(nama + ' (' + satuan.toUpperCase() + ')', defaultHarga, hargaBeliRef, satuan, bpd, 1, function(hargaTawar, jumlah) {
+        if (hargaTawar > 0 && jumlah > 0) {
+            const totalBotol = satuan === 'dus' ? jumlah * bpd : jumlah;
+            if (totalBotol > stok) { alert('Melebihi stok! Sisa: ' + stok + ' botol'); return; }
             const existing = cart.find(i => i.produk_id === id && i.satuan === satuan);
             if(existing) {
-                const newJumlah = existing.jumlah + 1;
+                const newJumlah = existing.jumlah + jumlah;
                 const newBotol = satuan === 'dus' ? newJumlah * bpd : newJumlah;
                 if(newBotol > stok) { alert('Melebihi stok! Sisa: ' + stok + ' botol'); return; }
                 existing.jumlah = newJumlah;
                 existing.harga_tawar = hargaTawar;
             } else {
-                const initBotol = satuan === 'dus' ? bpd : 1;
-                if(initBotol > stok) { alert('Stok tidak cukup! Sisa: ' + stok + ' botol'); return; }
                 cart.push({
                     produk_id: id, nama, 
-                    jumlah: 1, satuan: satuan, stok, harga_tawar: hargaTawar, harga_beli: hargaBeli, botol_perdus: bpd
+                    jumlah: jumlah, satuan: satuan, stok, harga_tawar: hargaTawar, harga_beli: hargaBeli, botol_perdus: bpd
                 });
             }
             renderCart();
@@ -227,9 +239,12 @@ function editHargaTawar(index) {
     const item = cart[index];
     const bpd = item.botol_perdus || 12;
     const hargaBeliRef = item.satuan === 'dus' ? item.harga_beli * bpd : item.harga_beli;
-    openHargaTawarModal(item.nama + ' (' + item.satuan.toUpperCase() + ')', item.harga_tawar, hargaBeliRef, function(harga) {
-        if (harga > 0) {
+    openHargaTawarModal(item.nama + ' (' + item.satuan.toUpperCase() + ')', item.harga_tawar, hargaBeliRef, item.satuan, bpd, item.jumlah, function(harga, jumlah) {
+        if (harga > 0 && jumlah > 0) {
+            const newBotol = item.satuan === 'dus' ? jumlah * bpd : jumlah;
+            if (newBotol > item.stok) { alert('Melebihi stok! Sisa: ' + item.stok + ' botol'); return; }
             cart[index].harga_tawar = harga;
+            cart[index].jumlah = jumlah;
             renderCart();
         }
     });
@@ -320,24 +335,37 @@ function renderCart() {
     btn.disabled = false;
 }
 
-function openHargaTawarModal(nama, defaultHarga, hargaBeliRef, callback) {
+function openHargaTawarModal(nama, defaultHarga, hargaBeliRef, satuan, bpd, defaultJumlah, callback) {
     const modal = document.getElementById('hargaTawarModal');
-    const input = document.getElementById('htawar-modal-input');
+    const hargaInput = document.getElementById('htawar-modal-input');
+    const jumlahInput = document.getElementById('htawar-jumlah-input');
     const confirmBtn = document.getElementById('htawar-modal-confirm');
     const refEl = document.getElementById('htawar-modal-ref');
     
     document.getElementById('htawar-modal-nama').textContent = nama;
-    input.value = defaultHarga;
+    hargaInput.value = defaultHarga ? formatThousand(defaultHarga) : '';
+    jumlahInput.value = defaultJumlah || 1;
     refEl.textContent = formatRp(hargaBeliRef);
+    
+    // Update labels based on unit
+    document.getElementById('htawar-jumlah-label').textContent = satuan === 'dus' ? 'Jumlah Dus' : 'Jumlah Botol';
+    document.getElementById('htawar-harga-label').textContent = satuan === 'dus' ? 'Harga Jual per DUS (Rp)' : 'Harga Jual per Botol (Rp)';
+    document.getElementById('htawar-jumlah-hint').textContent = satuan === 'dus' ? '* 1 dus = ' + bpd + ' botol' : '';
+    
     modal.classList.remove('hidden');
-    input.focus();
-    input.select();
+    jumlahInput.focus();
+    jumlahInput.select();
 
     confirmBtn.onclick = () => {
-        const val = parseInt(stripThousand(input.value));
-        if (val > 0) {
+        const harga = parseInt(stripThousand(hargaInput.value));
+        const jumlah = parseInt(jumlahInput.value) || 0;
+        if (harga > 0 && jumlah > 0) {
             modal.classList.add('hidden');
-            callback(val);
+            callback(harga, jumlah);
+        } else if (jumlah <= 0) {
+            alert('Jumlah harus lebih dari 0');
+        } else {
+            alert('Harga harus lebih dari 0');
         }
     };
 }
@@ -370,12 +398,19 @@ renderCart();
         <p class="text-sm text-gray-500 mb-4" id="htawar-modal-nama"></p>
         
         <div class="mb-3 bg-gray-100 rounded-lg p-3">
-            <label class="block text-xs font-medium text-gray-500 mb-1">📋 Harga Beli (Referensi)</label>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Harga Beli (Referensi)</label>
             <p id="htawar-modal-ref" class="text-lg font-bold text-gray-700">Rp 0</p>
         </div>
 
+        <div class="mb-3">
+            <label class="block text-sm font-medium text-gray-700 mb-1" id="htawar-jumlah-label">Jumlah Botol</label>
+            <label for="htawar-jumlah-input"></label><input type="number" id="htawar-jumlah-input" min="1" value="1" placeholder="Contoh: 10"
+                                                           class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-500">
+            <p class="text-[10px] text-indigo-600 mt-1" id="htawar-jumlah-hint"></p>
+        </div>
+
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Harga Jual (Rp)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1" id="htawar-harga-label">Harga Jual (Rp)</label>
             <label for="htawar-modal-input"></label><input type="text" id="htawar-modal-input" inputmode="numeric" placeholder="Contoh: 25.000"
                                                            class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-500 format-number">
         </div>

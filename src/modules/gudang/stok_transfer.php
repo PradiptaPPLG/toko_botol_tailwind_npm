@@ -109,6 +109,9 @@ $cabang = get_cabang();
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <input type="text" id="search-produk" oninput="loadProdukByCabang()" placeholder="🔍 Cari produk..." class="w-full border rounded-lg p-2 text-sm">
+                    </div>
                     <div id="produk-list" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                         <!-- Products will be loaded by JavaScript -->
                     </div>
@@ -184,9 +187,11 @@ $cabang = get_cabang();
         function loadProdukByCabang() {
             const cabangId = parseInt(document.getElementById('select-cabang-asal').value);
             const produkList = document.getElementById('produk-list');
+            const searchTerm = (document.getElementById('search-produk').value || '').toLowerCase();
 
             let html = '';
             produkData.forEach(p => {
+                if (searchTerm && !p.nama_produk.toLowerCase().includes(searchTerm)) return;
                 const stokKey = `${p.id}_${cabangId}`;
                 const stok = stokCabangData[stokKey] || 0;
                 const disabled = stok <= 0 ? 'opacity-50 cursor-not-allowed' : '';

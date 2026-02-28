@@ -65,9 +65,12 @@ $total_modal = array_sum(array_map(function($item) {
             <h2 class="text-xl font-bold">📦 DETAIL STOK PRODUK</h2>
         </div>
         <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="mb-4">
+                <input type="text" id="search-produk" oninput="filterProduk()" placeholder="🔍 Cari produk..." class="w-full border rounded-lg p-2 text-sm">
+            </div>
+            <div id="produk-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <?php foreach ($stok_cabang as $item): ?>
-                <div class="bg-gray-50 rounded-lg border-2 border-gray-200 p-4 hover:shadow-lg transition-all">
+                <div class="stok-card bg-gray-50 rounded-lg border-2 border-gray-200 p-4 hover:shadow-lg transition-all" data-nama="<?= strtolower(htmlspecialchars($item['nama_produk'])) ?>">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-3xl">🥤</span>
                         <span class="<?= $item['stok_cabang'] > 20 ? 'bg-green-100 text-green-800' : ($item['stok_cabang'] > 10 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') ?>
@@ -120,5 +123,14 @@ $total_modal = array_sum(array_map(function($item) {
         </div>
     </div>
 </div>
+
+<script>
+function filterProduk() {
+    const term = document.getElementById('search-produk').value.toLowerCase();
+    document.querySelectorAll('#produk-grid .stok-card').forEach(card => {
+        card.style.display = card.getAttribute('data-nama').includes(term) ? '' : 'none';
+    });
+}
+</script>
 
 <?php include '../../includes/layout_footer.php'; ?>

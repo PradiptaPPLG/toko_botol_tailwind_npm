@@ -3,7 +3,11 @@ node_modules
 .gitignore
 .idea
 .docker_migrated
-*.md
-input.css
 .history
+.env
+.env.example
 vendor
+docs
+*.md
+docker-compose*.yml
+.github

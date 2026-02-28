@@ -193,23 +193,23 @@ $movements_page = array_slice($all_movements, $offset, $limit);
 
     <!-- Filter -->
     <div class="bg-white rounded-lg shadow p-4 mb-6">
-        <form method="GET" class="flex flex-wrap md:flex-nowrap items-end gap-3">
+        <form method="GET" id="filter-form" class="flex flex-wrap md:flex-nowrap items-end gap-3">
             <div class="flex-1 min-w-35">
                 <label class="block text-gray-700 font-medium mb-1 text-xs uppercase tracking-wider">📅 Mulai</label>
                 <label>
-                    <input type="date" name="tanggal_mulai" value="<?= $tanggal_mulai ?>" class="w-full border rounded-lg p-2 text-sm">
+                    <input type="date" name="tanggal_mulai" value="<?= $tanggal_mulai ?>" class="w-full border rounded-lg p-2 text-sm" onchange="document.getElementById('filter-form').submit()">
                 </label>
             </div>
             <div class="flex-1 min-w-35">
                 <label class="block text-gray-700 font-medium mb-1 text-xs uppercase tracking-wider">📅 Akhir</label>
                 <label>
-                    <input type="date" name="tanggal_akhir" value="<?= $tanggal_akhir ?>" class="w-full border rounded-lg p-2 text-sm">
+                    <input type="date" name="tanggal_akhir" value="<?= $tanggal_akhir ?>" class="w-full border rounded-lg p-2 text-sm" onchange="document.getElementById('filter-form').submit()">
                 </label>
             </div>
             <div class="flex-1 min-w-37.5">
                 <label class="block text-gray-700 font-medium mb-1 text-xs uppercase tracking-wider">📋 Tipe</label>
                 <label>
-                    <select name="tipe" class="w-full border rounded-lg p-2 text-sm">
+                    <select name="tipe" class="w-full border rounded-lg p-2 text-sm" onchange="document.getElementById('filter-form').submit()">
                         <option value="semua" <?= $tipe_filter == 'semua' ? 'selected' : '' ?>>Semua</option>
                         <option value="masuk" <?= $tipe_filter == 'masuk' ? 'selected' : '' ?>>Stok Masuk</option>
                         <option value="rusak" <?= $tipe_filter == 'rusak' ? 'selected' : '' ?>>Stok Rusak</option>
@@ -217,9 +217,8 @@ $movements_page = array_slice($all_movements, $offset, $limit);
                     </select>
                 </label>
             </div>
-            <div class="w-full md:w-auto">
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg text-sm">🔍 CARI</button>
-            </div>
+
+
         </form>
     </div>
 

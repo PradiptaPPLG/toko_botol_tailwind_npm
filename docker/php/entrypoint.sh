@@ -11,7 +11,7 @@ done
 echo "✅ MariaDB is ready!"
 
 # Generate config.php from environment variables
-CONFIG_FILE="/var/www/html/includes/config.php"
+CONFIG_FILE="/var/www/html/src/includes/config.php"
 if [ ! -f "$CONFIG_FILE" ] || [ "${FORCE_CONFIG:-0}" = "1" ]; then
     echo "📝 Generating config.php..."
     cat > "$CONFIG_FILE" <<PHPEOF
@@ -34,17 +34,6 @@ if (\$conn->connect_error) {
 \$base_url = 'http://localhost' . \$root;
 PHPEOF
     echo "✅ config.php generated!"
-fi
-
-# Install npm dependencies and build TailwindCSS if needed
-if [ ! -d "/var/www/html/node_modules" ]; then
-    echo "📦 Installing npm dependencies..."
-    cd /var/www/html && npm install
-fi
-
-if [ ! -f "/var/www/html/dist/tailwind.css" ]; then
-    echo "🎨 Building TailwindCSS..."
-    cd /var/www/html && npm run build
 fi
 
 # Run migrations on first start
