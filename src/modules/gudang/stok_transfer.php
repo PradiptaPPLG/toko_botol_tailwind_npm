@@ -155,7 +155,7 @@ $cabang = get_cabang();
                             </div>
                             <button type="submit" id="btn-submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg disabled:opacity-50" disabled>✅ PROSES TRANSFER</button>
                         </form>
-                        <button onclick="clearCart()" class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg text-sm mt-2">🗑️ Kosongkan</button>
+                        <button type="button" onclick="clearCart()" class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg text-sm mt-2">🗑️ Kosongkan</button>
                     </div>
                 </div>
             </div>
@@ -258,7 +258,7 @@ $cabang = get_cabang();
         }
 
         function setQty(index, value) {
-            let newQty = parseInt(value) || 0;
+            let newQty = parseInt(stripThousand(value)) || 0;
             if (newQty <= 0) {
                 cart.splice(index, 1);
             } else {
@@ -320,7 +320,11 @@ $cabang = get_cabang();
             btn.disabled = false;
         }
 
-        function clearCart() { if (confirm('Kosongkan keranjang?')) { cart = []; renderCart(); } }
+        function clearCart() { 
+            confirmClear('Kosongkan keranjang?').then(res => {
+                if (res) { cart = []; renderCart(); }
+            });
+        }
 
         document.getElementById('form-transfer').addEventListener('submit', function(e) {
             if (!cart.length) { e.preventDefault(); alert('Keranjang kosong!'); return; }
@@ -344,4 +348,5 @@ $cabang = get_cabang();
         renderCart();
     </script>
 
+<?php include '../../includes/modal_confirm.php'; ?>
 <?php include '../../includes/layout_footer.php'; ?>

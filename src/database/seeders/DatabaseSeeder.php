@@ -3,6 +3,7 @@
 require_once __DIR__ . '/AdminSeeder.php';
 require_once __DIR__ . '/CabangSeeder.php';
 require_once __DIR__ . '/ProdukSeeder.php';
+require_once __DIR__ . '/StokMasukSeeder.php';
 //require_once __DIR__ . '/StokCabangSeeder.php';
 
 class DatabaseSeeder extends Seeder
@@ -13,6 +14,7 @@ class DatabaseSeeder extends Seeder
         $this->call('AdminSeeder');
         $this->call('CabangSeeder');
         $this->call('ProdukSeeder');
+        $this->call('StokMasukSeeder');
         //$this->call('StokCabangSeeder');
     }
 }

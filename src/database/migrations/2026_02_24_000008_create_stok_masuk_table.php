@@ -9,6 +9,7 @@ class CreateStokMasukTable extends Migration
             $s->integer('produk_id');
             $s->integer('jumlah');
             $s->integer('harga_beli_satuan')->default(0);
+            $s->integer('harga_perdus')->default(0);
             $s->integer('total_belanja')->default(0);
             $s->stringNullable('keterangan', 255);
             $s->stringNullable('batch_id', 50);

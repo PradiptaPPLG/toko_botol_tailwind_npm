@@ -23,7 +23,7 @@ function get_stok_gudang($produk_id) {
 
 function rupiah($angka): string
 {
-    return 'Rp ' . number_format($angka, 2, ',', '.');
+    return 'Rp&nbsp;' . number_format($angka, 0, ',', '.');
 }
 
 function format_tanggal($tanggal): string

@@ -4,6 +4,7 @@ require_once '../../includes/functions.php';
 
 if (!is_login()) redirect('../../login.php');
 
-// Redirect to pembeli as default
-header("Location: pembeli.php");
+// Redirect to penjual as default
+header("Location: penjual.php");
 exit;
+    

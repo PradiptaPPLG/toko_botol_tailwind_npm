@@ -150,47 +150,47 @@ $cek_hilang = cek_selisih_stok();
     <div class="p-4 lg:p-6">
         <!-- Header -->
         <div class="bg-white rounded-lg shadow p-4 mb-4">
-            <h1 class="judul text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
+            <h1 class="judul text-fluid-2xl lg:text-fluid-3xl font-bold text-gray-800 flex items-center">
                 <span class="mr-3">🏚️</span> MANAJEMEN GUDANG
             </h1>
-            <p class="text-sm text-gray-600 mt-1">👤 <?= $_SESSION['user']['nama'] ?></p>
+            <p class="text-fluid-sm text-gray-600 mt-1">👤 <?= $_SESSION['user']['nama'] ?></p>
         </div>
 
         <!-- PERINGATAN -->
         <?php if (count($cek_hilang) > 0): ?>
             <div class="bg-red-600 text-white p-4 lg:p-6 rounded-lg mb-4 shadow-lg border-2 border-red-800">
-                <div class="flex items-center text-xl lg:text-2xl font-bold mb-4">
-                    <span class="text-4xl lg:text-5xl mr-4">⚠️</span>
+                <div class="flex items-center text-fluid-xl lg:text-fluid-2xl font-bold mb-4">
+                    <span class="text-fluid-3xl lg:text-fluid-3xl mr-4">⚠️</span>
                     <span>PERINGATAN! DITEMUKAN SELISIH STOK (7 HARI TERAKHIR)</span>
                 </div>
 
                 <?php foreach ($cek_hilang as $w): ?>
-                    <div class="bg-red-700 p-3 lg:p-4 mb-3 rounded text-sm lg:text-lg notif-item" id="notif-<?= $w['id'] ?>">
+                    <div class="bg-red-700 p-3 lg:p-4 mb-3 rounded text-fluid-sm lg:text-fluid-lg notif-item" id="notif-<?= $w['id'] ?>">
                         <!-- Tombol Close dengan parameter op -->
-                        <a href="?dismiss=1&id=<?= $w['id'] ?>&op=<?= $current_op ?>" class="close-notif" onclick="return confirm('Tutup notifikasi ini?')" title="Tutup notifikasi">&times;</a>
+                        <a href="#" onclick="event.preventDefault(); customConfirm('Tutup notifikasi ini?', 'Konfirmasi', '⚠️', 'yellow').then(res => { if(res) window.location.href='?dismiss=1&id=<?= $w['id'] ?>&op=<?= $current_op ?>'; })" class="close-notif" title="Tutup notifikasi">&times;</a>
 
                         <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-lg lg:text-xl"><?= $w['produk'] ?></span>
-                            <span class="text-xs lg:text-sm"><?= date('d/m/Y', strtotime($w['tanggal'])) ?></span>
+                            <span class="font-bold text-fluid-lg lg:text-fluid-xl"><?= $w['produk'] ?></span>
+                            <span class="text-fluid-xs lg:text-fluid-sm"><?= date('d/m/Y', strtotime($w['tanggal'])) ?></span>
                         </div>
                         <div class="flex justify-between items-center flex-wrap gap-2">
                             <span>Stok Sistem: <?= number_format($w['stok_sistem'], 0, ',', '.') ?> botol</span>
                             <span>Stok Fisik: <?= number_format($w['stok_fisik'], 0, ',', '.') ?> botol</span>
-                            <span class="bg-red-800 px-3 lg:px-4 py-1 lg:py-2 rounded-full text-white font-bold text-sm lg:text-base">
+                            <span class="bg-red-800 px-3 lg:px-4 py-1 lg:py-2 rounded-full text-white font-bold text-fluid-sm lg:text-fluid-base">
                             HILANG <?= number_format($w['selisih'], 0, ',', '.') ?> BOTOL
                         </span>
                         </div>
                     </div>
                 <?php endforeach; ?>
 
-                <p class="text-center mt-4 text-sm lg:text-lg">
+                <p class="text-center mt-4 text-fluid-sm lg:text-fluid-lg">
                     📋 Berdasarkan Stock Opname terakhir. Lakukan pengecekan lebih lanjut.
                 </p>
             </div>
         <?php else: ?>
             <div class="bg-green-100 border-l-4 lg:border-l-8 border-green-500 text-green-800 p-4 lg:p-6 mb-4 rounded-lg shadow">
-                <div class="flex items-center text-base lg:text-xl">
-                    <span class="text-3xl lg:text-4xl mr-4">✅</span>
+                <div class="flex items-center text-fluid-base lg:text-fluid-xl">
+                    <span class="text-fluid-3xl lg:text-fluid-3xl mr-4">✅</span>
                     <span class="font-bold">Tidak ada selisih stok dari stock opname 7 hari terakhir.</span>
                 </div>
             </div>
@@ -212,7 +212,7 @@ $cek_hilang = cek_selisih_stok();
 
         <!-- Operation Mode Selector -->
         <div class="bg-white rounded-lg shadow p-4 mb-4">
-            <h2 class="text-lg font-bold mb-3">Pilih Operasi:</h2>
+            <h2 class="text-fluid-lg font-bold mb-3">Pilih Operasi:</h2>
             <div class="operation-toggle grid grid-cols-2 md:grid-cols-4 gap-2">
                 <button onclick="showOperation('stok-masuk')" id="btn-stok-masuk"
                         class="active py-3 px-4 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700">
@@ -239,16 +239,16 @@ $cek_hilang = cek_selisih_stok();
                 <!-- Product Grid -->
                 <div class="lg:col-span-2">
                     <div class="bg-white rounded-lg shadow p-4">
-                        <h2 class="text-xl font-bold mb-4">🥤 Pilih Produk untuk Stok Masuk</h2>
+                        <h2 class="text-fluid-xl font-bold mb-4">🥤 Pilih Produk untuk Stok Masuk</h2>
                         <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                             <?php foreach ($produk as $p): ?>
                                 <div class="product-card bg-white border-2 border-gray-200 rounded-lg p-3"
                                      onclick="addToCartMasuk(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>', <?= $p['stok_gudang'] ?>)">
                                     <div class="bg-linear-to-br from-green-50 to-green-100 rounded-lg h-20 flex items-center justify-center mb-2">
-                                        <span class="text-3xl">🥤</span>
+                                        <span class="text-fluid-3xl">🥤</span>
                                     </div>
-                                    <h3 class="font-bold text-sm mb-1 truncate"><?= $p['nama_produk'] ?></h3>
-                                    <p class="text-xs text-gray-600">Stok Gudang: <?= number_format($p['stok_gudang'], 0, ',', '.') ?></p>
+                                    <h3 class="font-bold text-fluid-sm mb-1 truncate"><?= $p['nama_produk'] ?></h3>
+                                    <p class="text-fluid-xs text-gray-600">Stok Gudang: <?= number_format($p['stok_gudang'], 0, ',', '.') ?></p>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -258,14 +258,14 @@ $cek_hilang = cek_selisih_stok();
                 <!-- Cart Sidebar -->
                 <div class="lg:col-span-1">
                     <div class="cart-sidebar bg-white rounded-lg shadow p-4">
-                        <h2 class="text-xl font-bold mb-4 text-green-700">📥 Keranjang Stok Masuk</h2>
+                        <h2 class="text-fluid-xl font-bold mb-4 text-green-700">📥 Keranjang Stok Masuk</h2>
 
                         <div id="cart-masuk-items" class="space-y-2 mb-4 max-h-96 overflow-y-auto">
-                            <p class="text-gray-400 text-center py-8 text-sm">Keranjang kosong</p>
+                            <p class="text-gray-400 text-center py-8 text-fluid-sm">Keranjang kosong</p>
                         </div>
 
                         <div class="border-t pt-4 space-y-3">
-                            <div class="flex justify-between text-lg font-bold">
+                            <div class="flex justify-between text-fluid-lg font-bold">
                                 <span>Total Item</span>
                                 <span id="cart-masuk-count" class="text-green-600">0</span>
                             </div>
@@ -275,9 +275,9 @@ $cek_hilang = cek_selisih_stok();
                                 <input type="hidden" name="cart_data" id="cart-masuk-data">
 
                                 <div class="mb-3">
-                                    <label class="block text-sm font-medium mb-2">Keterangan (Opsional)</label>
+                                    <label class="block text-fluid-sm font-medium mb-2">Keterangan (Opsional)</label>
                                     <label>
-                                        <input type="text" name="keterangan" class="w-full border rounded-lg p-2 text-sm"
+                                        <input type="text" name="keterangan" class="w-full border rounded-lg p-2 text-fluid-sm"
                                                placeholder="Dari supplier X...">
                                     </label>
                                 </div>
@@ -290,7 +290,7 @@ $cek_hilang = cek_selisih_stok();
                             </form>
 
                             <button type="button" onclick="clearCartMasuk()"
-                                    class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg text-sm">
+                                    class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg text-fluid-sm">
                                 🗑️ Kosongkan
                             </button>
                         </div>
@@ -305,17 +305,17 @@ $cek_hilang = cek_selisih_stok();
                 <!-- Product Grid -->
                 <div class="lg:col-span-2">
                     <div class="bg-white rounded-lg shadow p-4">
-                        <h2 class="text-xl font-bold mb-4">🥤 Pilih Produk untuk Stok Keluar</h2>
+                        <h2 class="text-fluid-xl font-bold mb-4">🥤 Pilih Produk untuk Stok Keluar</h2>
                         <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                             <?php foreach ($produk as $p): ?>
                                 <?php $disabled = $p['stok_gudang'] <= 0 ? 'opacity-50 cursor-not-allowed' : ''; ?>
                                 <div class="product-card bg-white border-2 border-gray-200 rounded-lg p-3 <?= $disabled ?>"
                                      onclick="<?= $p['stok_gudang'] > 0 ? 'addToCartKeluar('.$p['id'].', \''.htmlspecialchars($p['nama_produk']).'\', '.$p['stok_gudang'].')' : '' ?>">
                                     <div class="bg-linear-to-br from-yellow-50 to-yellow-100 rounded-lg h-20 flex items-center justify-center mb-2">
-                                        <span class="text-3xl">🥤</span>
+                                        <span class="text-fluid-3xl">🥤</span>
                                     </div>
-                                    <h3 class="font-bold text-sm mb-1 truncate"><?= $p['nama_produk'] ?></h3>
-                                    <p class="text-xs <?= $p['stok_gudang'] > 0 ? 'text-green-600' : 'text-red-600' ?>">
+                                    <h3 class="font-bold text-fluid-sm mb-1 truncate"><?= $p['nama_produk'] ?></h3>
+                                    <p class="text-fluid-xs <?= $p['stok_gudang'] > 0 ? 'text-green-600' : 'text-red-600' ?>">
                                         Stok: <?= number_format($p['stok_gudang'], 0, ',', '.') ?> btl
                                     </p>
                                 </div>
@@ -327,18 +327,18 @@ $cek_hilang = cek_selisih_stok();
                 <!-- Cart Sidebar -->
                 <div class="lg:col-span-1">
                     <div class="cart-sidebar bg-white rounded-lg shadow p-4">
-                        <h2 class="text-xl font-bold mb-4 text-yellow-700">📤 Keranjang Stok Keluar</h2>
+                        <h2 class="text-fluid-xl font-bold mb-4 text-yellow-700">📤 Keranjang Stok Keluar</h2>
 
                         <!-- Kondisi Toggle -->
                         <div class="mb-4">
-                            <label class="block text-sm font-medium mb-2">Tipe:</label>
+                            <label class="block text-fluid-sm font-medium mb-2">Tipe:</label>
                             <div class="flex gap-2">
                                 <button type="button" onclick="setKondisi('rusak')" id="btn-rusak"
-                                        class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold bg-red-600 text-white">
+                                        class="flex-1 py-2 px-3 rounded-lg text-fluid-sm font-semibold bg-red-600 text-white">
                                     🔴 Rusak
                                 </button>
                                 <button type="button" onclick="setKondisi('transfer')" id="btn-transfer"
-                                        class="flex-1 py-2 px-3 rounded-lg text-sm font-semibold bg-gray-200 text-gray-700">
+                                        class="flex-1 py-2 px-3 rounded-lg text-fluid-sm font-semibold bg-gray-200 text-gray-700">
                                     🔄 Transfer
                                 </button>
                             </div>
@@ -346,8 +346,8 @@ $cek_hilang = cek_selisih_stok();
 
                         <!-- Cabang Tujuan -->
                         <div id="div-cabang-tujuan" class="mb-4 hidden">
-                            <label class="block text-sm font-medium mb-2">Tujuan Cabang:</label>
-                            <label for="select-cabang"></label><select name="cabang_tujuan" id="select-cabang" class="w-full border rounded-lg p-2 text-sm">
+                            <label class="block text-fluid-sm font-medium mb-2">Tujuan Cabang:</label>
+                            <label for="select-cabang"></label><select name="cabang_tujuan" id="select-cabang" class="w-full border rounded-lg p-2 text-fluid-sm">
                                 <?php foreach ($cabang as $c): ?>
                                     <option value="<?= $c['id'] ?>"><?= $c['nama_cabang'] ?></option>
                                 <?php endforeach; ?>
@@ -355,11 +355,11 @@ $cek_hilang = cek_selisih_stok();
                         </div>
 
                         <div id="cart-keluar-items" class="space-y-2 mb-4 max-h-64 overflow-y-auto">
-                            <p class="text-gray-400 text-center py-8 text-sm">Keranjang kosong</p>
+                            <p class="text-gray-400 text-center py-8 text-fluid-sm">Keranjang kosong</p>
                         </div>
 
                         <div class="border-t pt-4 space-y-3">
-                            <div class="flex justify-between text-lg font-bold">
+                            <div class="flex justify-between text-fluid-lg font-bold">
                                 <span>Total Item</span>
                                 <span id="cart-keluar-count" class="text-yellow-600">0</span>
                             </div>
@@ -371,9 +371,9 @@ $cek_hilang = cek_selisih_stok();
                                 <input type="hidden" name="cabang_tujuan" id="form-cabang-tujuan">
 
                                 <div class="mb-3">
-                                    <label class="block text-sm font-medium mb-2">Keterangan (Opsional)</label>
+                                    <label class="block text-fluid-sm font-medium mb-2">Keterangan (Opsional)</label>
                                     <label>
-<textarea name="keterangan" rows="2" class="w-full border rounded-lg p-2 text-sm"
+<textarea name="keterangan" rows="2" class="w-full border rounded-lg p-2 text-fluid-sm"
           placeholder="Keterangan..."></textarea>
                                     </label>
                                 </div>
@@ -386,7 +386,7 @@ $cek_hilang = cek_selisih_stok();
                             </form>
 
                             <button type="button" onclick="clearCartKeluar()"
-                                    class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg text-sm">
+                                    class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg text-fluid-sm">
                                 🗑️ Kosongkan
                             </button>
                         </div>
@@ -398,7 +398,7 @@ $cek_hilang = cek_selisih_stok();
         <!-- STOCK OPNAME Section -->
         <div id="section-stock-opname" class="operation-section hidden">
             <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-2xl font-bold text-purple-700 mb-4 flex items-center">
+                <h2 class="text-fluid-2xl font-bold text-purple-700 mb-4 flex items-center">
                     <span class="mr-2">📋</span> STOCK OPNAME - HITUNG STOK FISIK
                 </h2>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -434,14 +434,14 @@ $cek_hilang = cek_selisih_stok();
                                     </label>
                                 </div>
                             </div>
-                            <button type="submit" name="stock_opname" class="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg text-lg">
+                            <button type="submit" name="stock_opname" class="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg text-fluid-lg">
                                 🔍 HITUNG SELISIH
                             </button>
                         </form>
                     </div>
 
                     <div class="bg-gray-50 p-4 rounded-lg">
-                        <h3 class="font-bold text-lg mb-3">📊 Riwayat Stock Opname</h3>
+                        <h3 class="font-bold text-fluid-lg mb-3">📊 Riwayat Stock Opname</h3>
                         <?php
                         $so_history = query("SELECT so.*, p.nama_produk FROM stock_opname so JOIN produk p ON so.produk_id = p.id WHERE so.is_cancelled = 0 ORDER BY so.created_at DESC LIMIT 10");
                         ?>
@@ -450,7 +450,7 @@ $cek_hilang = cek_selisih_stok();
                                 <?php foreach ($so_history as $so): ?>
                                     <div class="so-history-item <?= $so['status'] == 'HILANG' ? 'missing' : 'found' ?>">
                                         <!-- Tombol X dengan parameter op -->
-                                        <a href="?dismiss_so=1&id=<?= $so['id'] ?>&op=<?= $current_op ?>" class="close-notif-so" onclick="return confirm('Hapus riwayat ini?')" title="Hapus">&times;</a>
+                                        <a href="#" onclick="event.preventDefault(); confirmDelete('Hapus riwayat ini?').then(res => { if(res) window.location.href='?dismiss_so=1&id=<?= $so['id'] ?>&op=<?= $current_op ?>'; })" class="close-notif-so" title="Hapus">&times;</a>
 
                                         <div class="flex justify-between">
                                             <span class="font-bold"><?= $so['nama_produk'] ?></span>
@@ -461,7 +461,7 @@ $cek_hilang = cek_selisih_stok();
                                             <?= $so['selisih'] > 0 ? 'HILANG ' . number_format($so['selisih'], 0, ',', '.') : ($so['selisih'] < 0 ? 'LEBIH ' . number_format(abs($so['selisih']), 0, ',', '.') : 'SESUAI') ?>
                                         </span>
                                         </div>
-                                        <span class="text-sm"><?= date('d/m/Y', strtotime($so['tanggal'])) ?></span>
+                                        <span class="text-fluid-sm"><?= date('d/m/Y', strtotime($so['tanggal'])) ?></span>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -476,7 +476,7 @@ $cek_hilang = cek_selisih_stok();
         <!-- PENGELUARAN Section -->
         <div id="section-pengeluaran" class="operation-section hidden">
             <div class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-2xl font-bold text-red-700 mb-4 flex items-center">
+                <h2 class="text-fluid-2xl font-bold text-red-700 mb-4 flex items-center">
                     <span class="mr-2">💸</span> PENGELUARAN OPERASIONAL
                 </h2>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -495,7 +495,7 @@ $cek_hilang = cek_selisih_stok();
                                         <input type="text" name="keterangan" required class="w-full border rounded-lg p-3" placeholder="Listrik, air, dll">
                                     </label>
                                 </div>
-                                <button type="submit" name="tambah_pengeluaran" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg text-lg">
+                                <button type="submit" name="tambah_pengeluaran" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg text-fluid-lg">
                                     💰 CATAT PENGELUARAN
                                 </button>
                             </div>
@@ -503,7 +503,7 @@ $cek_hilang = cek_selisih_stok();
                     </div>
 
                     <div class="bg-gray-50 p-4 rounded-lg">
-                        <h3 class="font-bold text-lg mb-3">📋 Pengeluaran Hari Ini</h3>
+                        <h3 class="font-bold text-fluid-lg mb-3">📋 Pengeluaran Hari Ini</h3>
                         <?php $pengeluaran_hari = query("SELECT * FROM pengeluaran WHERE DATE(created_at) = CURDATE() AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 10"); ?>
                         <?php if (count($pengeluaran_hari) > 0): ?>
                             <div class="space-y-2 max-h-80 overflow-y-auto">
@@ -511,14 +511,14 @@ $cek_hilang = cek_selisih_stok();
                                     <div class="flex justify-between items-center bg-white p-3 rounded shadow-sm">
                                         <div class="flex-1">
                                             <p class="font-medium"><?= $ph['keterangan'] ?></p>
-                                            <p class="text-xs text-gray-500"><?= date('H:i', strtotime($ph['created_at'])) ?></p>
+                                            <p class="text-fluid-xs text-gray-500"><?= date('H:i', strtotime($ph['created_at'])) ?></p>
                                         </div>
                                         <span class="font-bold text-red-600 mr-3"><?= rupiah($ph['nominal']) ?></span>
                                         <div class="flex gap-1">
                                             <button onclick="editPengeluaran(<?= $ph['id'] ?>, '<?= htmlspecialchars($ph['keterangan']) ?>', <?= $ph['nominal'] ?>)"
-                                                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">✏️</button>
+                                                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-fluid-xs font-bold">✏️</button>
                                             <button onclick="hapusPengeluaran(<?= $ph['id'] ?>, '<?= htmlspecialchars($ph['keterangan']) ?>')"
-                                                    class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">🗑️</button>
+                                                    class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-fluid-xs font-bold">🗑️</button>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
@@ -532,19 +532,19 @@ $cek_hilang = cek_selisih_stok();
         </div>
 
 <!-- Edit Pengeluaran Modal (index.php) -->
-<div id="editPengeluaranModal" class="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center hidden">
+<div id="editPengeluaranModal" class="fixed inset-0 bg-transparent z-[9999] flex items-center justify-center hidden">
     <div class="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full mx-4">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">✏️ Edit Pengeluaran</h3>
+        <h3 class="text-fluid-xl font-bold text-gray-800 mb-4">✏️ Edit Pengeluaran</h3>
         <form method="POST" id="editPengeluaranForm">
             <input type="hidden" name="edit_pengeluaran" value="1">
             <input type="hidden" name="id" id="edit_peng_id">
             <div class="mb-4">
                 <label class="block text-gray-700 font-bold mb-2">Nominal</label>
-                <input type="text" name="nominal" id="edit_peng_nominal" inputmode="numeric" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg format-number">
+                <input type="text" name="nominal" id="edit_peng_nominal" inputmode="numeric" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-fluid-lg format-number">
             </div>
             <div class="mb-4">
                 <label class="block text-gray-700 font-bold mb-2">Keterangan</label>
-                <input type="text" name="keterangan" id="edit_peng_keterangan" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg">
+                <input type="text" name="keterangan" id="edit_peng_keterangan" required class="w-full border-2 border-gray-300 rounded-lg p-3 text-fluid-lg">
             </div>
             <div class="flex gap-3">
                 <button type="button" onclick="closeEditPengeluaranModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg">Batal</button>
@@ -621,7 +621,7 @@ $cek_hilang = cek_selisih_stok();
             const btn = document.getElementById('btn-submit-masuk');
 
             if (cartMasuk.length === 0) {
-                container.innerHTML = '<p class="text-gray-400 text-center py-8 text-sm">Keranjang kosong</p>';
+                container.innerHTML = '<p class="text-gray-400 text-center py-8 text-fluid-sm">Keranjang kosong</p>';
                 count.textContent = '0';
                 btn.disabled = true;
                 return;
@@ -633,11 +633,11 @@ $cek_hilang = cek_selisih_stok();
             <div class="border rounded-lg p-2 bg-gray-50">
                 <div class="flex justify-between items-start mb-2">
                     <div class="flex-1">
-                        <h4 class="font-semibold text-sm">${item.nama}</h4>
-                        <p class="text-xs text-gray-600">Stok: ${numFormat(item.stok_gudang)} btl</p>
+                        <h4 class="font-semibold text-fluid-sm">${item.nama}</h4>
+                        <p class="text-fluid-xs text-gray-600">Stok: ${numFormat(item.stok_gudang)} btl</p>
                     </div>
                     <button onclick="cartMasuk.splice(${index}, 1); renderCartMasuk();"
-                            class="text-red-500 hover:text-red-700 text-sm">✕</button>
+                            class="text-red-500 hover:text-red-700 text-fluid-sm">✕</button>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="updateQtyMasuk(${index}, -1)"
@@ -645,7 +645,7 @@ $cek_hilang = cek_selisih_stok();
                     <span class="font-bold w-12 text-center">${numFormat(item.jumlah)}</span>
                     <button onclick="updateQtyMasuk(${index}, 1)"
                             class="qty-btn bg-green-600 hover:bg-green-700 text-white w-7 h-7 rounded flex items-center justify-center font-bold">+</button>
-                    <span class="text-xs text-gray-500 ml-auto">botol</span>
+                    <span class="text-fluid-xs text-gray-500 ml-auto">botol</span>
                 </div>
             </div>
         `;
@@ -656,8 +656,8 @@ $cek_hilang = cek_selisih_stok();
             btn.disabled = false;
         }
 
-        function clearCartMasuk() {
-            if (confirm('Kosongkan keranjang?')) {
+        async function clearCartMasuk() {
+            if (await confirmClear('Kosongkan keranjang?')) {
                 cartMasuk = [];
                 renderCartMasuk();
             }
@@ -681,12 +681,12 @@ $cek_hilang = cek_selisih_stok();
             document.getElementById('form-kondisi').value = type;
 
             if (type === 'rusak') {
-                document.getElementById('btn-rusak').className = 'flex-1 py-2 px-3 rounded-lg text-sm font-semibold bg-red-600 text-white';
-                document.getElementById('btn-transfer').className = 'flex-1 py-2 px-3 rounded-lg text-sm font-semibold bg-gray-200 text-gray-700';
+                document.getElementById('btn-rusak').className = 'flex-1 py-2 px-3 rounded-lg text-fluid-sm font-semibold bg-red-600 text-white';
+                document.getElementById('btn-transfer').className = 'flex-1 py-2 px-3 rounded-lg text-fluid-sm font-semibold bg-gray-200 text-gray-700';
                 document.getElementById('div-cabang-tujuan').classList.add('hidden');
             } else {
-                document.getElementById('btn-rusak').className = 'flex-1 py-2 px-3 rounded-lg text-sm font-semibold bg-gray-200 text-gray-700';
-                document.getElementById('btn-transfer').className = 'flex-1 py-2 px-3 rounded-lg text-sm font-semibold bg-blue-600 text-white';
+                document.getElementById('btn-rusak').className = 'flex-1 py-2 px-3 rounded-lg text-fluid-sm font-semibold bg-gray-200 text-gray-700';
+                document.getElementById('btn-transfer').className = 'flex-1 py-2 px-3 rounded-lg text-fluid-sm font-semibold bg-blue-600 text-white';
                 document.getElementById('div-cabang-tujuan').classList.remove('hidden');
             }
         }
@@ -734,7 +734,7 @@ $cek_hilang = cek_selisih_stok();
             const btn = document.getElementById('btn-submit-keluar');
 
             if (cartKeluar.length === 0) {
-                container.innerHTML = '<p class="text-gray-400 text-center py-8 text-sm">Keranjang kosong</p>';
+                container.innerHTML = '<p class="text-gray-400 text-center py-8 text-fluid-sm">Keranjang kosong</p>';
                 count.textContent = '0';
                 btn.disabled = true;
                 return;
@@ -746,11 +746,11 @@ $cek_hilang = cek_selisih_stok();
             <div class="border rounded-lg p-2 bg-gray-50">
                 <div class="flex justify-between items-start mb-2">
                     <div class="flex-1">
-                        <h4 class="font-semibold text-sm">${item.nama}</h4>
-                        <p class="text-xs text-gray-600">Max: ${numFormat(item.stok_gudang)} btl</p>
+                        <h4 class="font-semibold text-fluid-sm">${item.nama}</h4>
+                        <p class="text-fluid-xs text-gray-600">Max: ${numFormat(item.stok_gudang)} btl</p>
                     </div>
                     <button onclick="cartKeluar.splice(${index}, 1); renderCartKeluar();"
-                            class="text-red-500 hover:text-red-700 text-sm">✕</button>
+                            class="text-red-500 hover:text-red-700 text-fluid-sm">✕</button>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="updateQtyKeluar(${index}, -1)"
@@ -758,7 +758,7 @@ $cek_hilang = cek_selisih_stok();
                     <span class="font-bold w-12 text-center">${numFormat(item.jumlah)}</span>
                     <button onclick="updateQtyKeluar(${index}, 1)"
                             class="qty-btn bg-yellow-600 hover:bg-yellow-700 text-white w-7 h-7 rounded flex items-center justify-center font-bold">+</button>
-                    <span class="text-xs text-gray-500 ml-auto">botol</span>
+                    <span class="text-fluid-xs text-gray-500 ml-auto">botol</span>
                 </div>
             </div>
         `;
@@ -769,8 +769,8 @@ $cek_hilang = cek_selisih_stok();
             btn.disabled = false;
         }
 
-        function clearCartKeluar() {
-            if (confirm('Kosongkan keranjang?')) {
+        async function clearCartKeluar() {
+            if (await confirmClear('Kosongkan keranjang?')) {
                 cartKeluar = [];
                 renderCartKeluar();
             }

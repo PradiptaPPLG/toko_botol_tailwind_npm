@@ -90,14 +90,14 @@ $rekap = query("
 <div class="p-4 lg:p-6">
     <!-- Header -->
     <div class="bg-white rounded-lg shadow p-4 mb-4">
-        <h1 class="judul text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
+        <h1 class="judul text-fluid-2xl lg:text-fluid-3xl font-bold text-gray-800 flex items-center">
             <span class="mr-3">🛒</span> TRANSAKSI
         </h1>
-        <p class="text-sm text-gray-600 mt-1">👤 <?= $_SESSION['user']['nama'] ?> | 📍 <?= $nama_cabang ?></p>
+        <p class="text-fluid-sm text-gray-600 mt-1">👤 <?= $_SESSION['user']['nama'] ?> | 📍 <?= $nama_cabang ?></p>
         <?php if (is_admin()): ?>
         <div class="mt-3">
             <label>
-                <select onchange="window.location.href='?cabang='+this.value" class="border rounded-lg p-2 text-sm">
+                <select onchange="window.location.href='?cabang='+this.value" class="border rounded-lg p-2 text-fluid-sm">
                     <?php foreach (get_cabang() as $c): ?>
                     <option value="<?= $c['id'] ?>" <?= $c['id'] == $cabang_id ? 'selected' : '' ?>>📍 <?= $c['nama_cabang'] ?></option>
                     <?php endforeach; ?>
@@ -120,14 +120,14 @@ $rekap = query("
         <div class="lg:col-span-2">
             <div class="bg-white rounded-lg shadow p-4">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold">🥤 Pilih Produk</h2>
+                    <h2 class="text-fluid-xl font-bold">🥤 Pilih Produk</h2>
                     <div class="flex bg-gray-100 rounded-lg p-1">
-                        <button onclick="setGlobalUnit('botol')" id="unit-botol" class="px-3 py-1 rounded text-xs font-semibold bg-white text-purple-600">Botol</button>
-                        <button onclick="setGlobalUnit('dus')" id="unit-dus" class="px-3 py-1 rounded text-xs font-semibold text-gray-500">Dus</button>
+                        <button onclick="setGlobalUnit('botol')" id="unit-botol" class="px-3 py-1 rounded text-fluid-xs font-semibold bg-white text-purple-600">Botol</button>
+                        <button onclick="setGlobalUnit('dus')" id="unit-dus" class="px-3 py-1 rounded text-fluid-xs font-semibold text-gray-500">Dus</button>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <input type="text" id="search-produk" oninput="filterProduk()" placeholder="🔍 Cari produk..." class="w-full border rounded-lg p-2 text-sm">
+                    <input type="text" id="search-produk" oninput="filterProduk()" placeholder="🔍 Cari produk..." class="w-full border rounded-lg p-2 text-fluid-sm">
                 </div>
                 <div id="produk-grid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                     <?php foreach ($produk as $p): ?>
@@ -139,10 +139,10 @@ $rekap = query("
                              data-nama="<?= strtolower(htmlspecialchars($p['nama_produk'])) ?>"
                          onclick="handleAddToCart(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nama_produk']) ?>', <?= $stok ?>, <?= $p['harga_beli'] ?? 0 ?>, <?= $p['botol_perdus'] ?? 12 ?>)">
                             <div class="bg-linear-to-br from-purple-50 to-purple-100 rounded-lg h-20 flex items-center justify-center mb-2">
-                                <span class="text-3xl">🥤</span>
+                                <span class="text-fluid-3xl">🥤</span>
                             </div>
-                            <h3 class="font-bold text-sm mb-1 truncate"><?= $p['nama_produk'] ?></h3>
-                            <p class="text-xs text-gray-600">Stok: <?= $stok ?></p>
+                            <h3 class="font-bold text-fluid-sm mb-1 truncate"><?= $p['nama_produk'] ?></h3>
+                            <p class="text-fluid-xs text-gray-600">Stok: <?= $stok ?></p>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -151,16 +151,16 @@ $rekap = query("
 
         <div class="lg:col-span-1">
             <div class="cart-sidebar bg-white rounded-lg shadow p-4">
-                <h2 class="text-xl font-bold mb-4 text-purple-700">🤝 Keranjang</h2>
+                <h2 class="text-fluid-xl font-bold mb-4 text-purple-700">🤝 Keranjang</h2>
                 <div id="cart-items" class="space-y-2 mb-4 max-h-96 overflow-y-auto">
                     <p class="text-gray-400 text-center py-8">Keranjang kosong</p>
                 </div>
                 <div class="border-t pt-4">
-                    <div class="flex justify-between text-lg font-bold mb-1">
+                    <div class="flex justify-between text-fluid-lg font-bold mb-1">
                         <span>Total Item</span>
                         <span id="cart-count" class="text-purple-600">0</span>
                     </div>
-                    <div class="flex justify-between text-sm font-semibold mb-3 text-indigo-700">
+                    <div class="flex justify-between text-fluid-sm font-semibold mb-3 text-indigo-700">
                         <span>Total Belanja</span>
                         <span id="grand-total">Rp 0</span>
                     </div>
@@ -168,14 +168,14 @@ $rekap = query("
                         <input type="hidden" name="simpan_transaksi" value="1">
                         <input type="hidden" name="cart_data" id="form-cart-data">
                         <div class="mb-3">
-                            <label class="block text-sm font-medium mb-2">Keterangan</label>
+                            <label class="block text-fluid-sm font-medium mb-2">Keterangan</label>
                             <label>
-                                <input type="text" name="keterangan" class="w-full border rounded-lg p-2 text-sm" placeholder="Opsional...">
+                                <input type="text" name="keterangan" class="w-full border rounded-lg p-2 text-fluid-sm" placeholder="Opsional...">
                             </label>
                         </div>
                         <button type="submit" id="btn-bayar" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg disabled:opacity-50" disabled>✅ PROSES</button>
                     </form>
-                    <button onclick="confirmClearCart()" class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg text-sm mt-2">🗑️ Kosongkan</button>
+                    <button onclick="confirmClearCart()" class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg text-fluid-sm mt-2">🗑️ Kosongkan</button>
                 </div>
             </div>
         </div>
@@ -200,11 +200,11 @@ function setGlobalUnit(unit) {
     const btnDus = document.getElementById('unit-dus');
     
     if(unit === 'botol') {
-        btnBotol.className = 'px-3 py-1 rounded text-xs font-semibold bg-white text-purple-600';
-        btnDus.className = 'px-3 py-1 rounded text-xs font-semibold text-gray-500';
+        btnBotol.className = 'px-3 py-1 rounded text-fluid-xs font-semibold bg-white text-purple-600';
+        btnDus.className = 'px-3 py-1 rounded text-fluid-xs font-semibold text-gray-500';
     } else {
-        btnBotol.className = 'px-3 py-1 rounded text-xs font-semibold text-gray-500';
-        btnDus.className = 'px-3 py-1 rounded text-xs font-semibold bg-white text-purple-600';
+        btnBotol.className = 'px-3 py-1 rounded text-fluid-xs font-semibold text-gray-500';
+        btnDus.className = 'px-3 py-1 rounded text-fluid-xs font-semibold bg-white text-purple-600';
     }
 }
 
@@ -264,7 +264,7 @@ function updateQty(index, delta) {
 }
 
 function setQty(index, value) {
-    let newQty = parseInt(value) || 0;
+    let newQty = parseInt(stripThousand(value)) || 0;
     if(newQty <= 0) {
         cart.splice(index, 1);
     } else {
@@ -305,25 +305,25 @@ function renderCart() {
 
         html += `<div class="border rounded-lg p-2 bg-gray-50">
             <div class="flex justify-between items-start mb-1">
-                <div><h4 class="font-semibold text-sm">${item.nama}</h4><p class="text-xs text-gray-600">Stok: ${item.stok} btl</p></div>
-                <button onclick="cart.splice(${idx},1); renderCart();" class="text-red-500 text-sm">✕</button>
+                <div><h4 class="font-semibold text-fluid-sm">${item.nama}</h4><p class="text-fluid-xs text-gray-600">Stok: ${item.stok} btl</p></div>
+                <button onclick="cart.splice(${idx},1); renderCart();" class="text-red-500 text-fluid-sm">✕</button>
             </div>
             <div class="flex items-center gap-1 mb-1">
-                <span class="text-xs text-gray-500 mr-1">${item.satuan === 'dus' ? 'Harga/dus' : 'Harga/botol'}:</span>
-                <span class="text-xs font-bold text-indigo-700">${formatRp(harga)}</span>
-                <button onclick="editHargaTawar(${idx})" class="ml-auto text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2 py-0.5 rounded">✏️ Ubah</button>
+                <span class="text-fluid-xs text-gray-500 mr-1">${item.satuan === 'dus' ? 'Harga/dus' : 'Harga/botol'}:</span>
+                <span class="text-fluid-xs font-bold text-indigo-700">${formatRp(harga)}</span>
+                <button onclick="editHargaTawar(${idx})" class="ml-auto text-fluid-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2 py-0.5 rounded">✏️ Ubah</button>
             </div>
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
                     <button onclick="updateQty(${idx}, -1)" class="qty-btn bg-gray-300 w-7 h-7 rounded">−</button>
                     <input type="number" value="${item.jumlah}" 
                            onchange="setQty(${idx}, this.value)"
-                           class="w-14 text-center border rounded font-bold text-sm mx-1 focus:ring-1 focus:ring-blue-500 outline-none">
+                           class="w-14 text-center border rounded font-bold text-fluid-sm mx-1 focus:ring-1 focus:ring-blue-500 outline-none">
                     <button onclick="updateQty(${idx}, 1)" class="qty-btn bg-purple-600 text-white w-7 h-7 rounded">+</button>
                 </div>
                 <div class="text-right">
                     <p class="text-[10px] text-gray-500">${numFormat(totalBotol)} botol</p>
-                    <p class="text-xs font-bold text-purple-700">${formatRp(sub)}</p>
+                    <p class="text-fluid-xs font-bold text-purple-700">${formatRp(sub)}</p>
                 </div>
             </div>
         </div>`;
@@ -345,7 +345,6 @@ function openHargaTawarModal(nama, defaultHarga, hargaBeliRef, satuan, bpd, defa
     document.getElementById('htawar-modal-nama').textContent = nama;
     hargaInput.value = defaultHarga ? formatThousand(defaultHarga) : '';
     jumlahInput.value = defaultJumlah || 1;
-    refEl.textContent = formatRp(hargaBeliRef);
     
     // Update labels based on unit
     document.getElementById('htawar-jumlah-label').textContent = satuan === 'dus' ? 'Jumlah Dus' : 'Jumlah Botol';
@@ -358,7 +357,7 @@ function openHargaTawarModal(nama, defaultHarga, hargaBeliRef, satuan, bpd, defa
 
     confirmBtn.onclick = () => {
         const harga = parseInt(stripThousand(hargaInput.value));
-        const jumlah = parseInt(jumlahInput.value) || 0;
+        const jumlah = parseInt(stripThousand(jumlahInput.value)) || 0;
         if (harga > 0 && jumlah > 0) {
             modal.classList.add('hidden');
             callback(harga, jumlah);
@@ -371,7 +370,7 @@ function openHargaTawarModal(nama, defaultHarga, hargaBeliRef, satuan, bpd, defa
 }
 
 function formatRp(n) {
-    return 'Rp ' + parseFloat(n || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    return 'Rp&nbsp;' + parseFloat(n || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
 function numFormat(n) {
@@ -392,27 +391,22 @@ renderCart();
 </script>
 
 <!-- Harga Tawar Modal -->
-<div id="hargaTawarModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+<div id="hargaTawarModal" class="fixed inset-0 bg-transparent z-9999 hidden flex items-center justify-center">
     <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
-        <h3 class="text-lg font-bold text-gray-800 mb-1">💰 Input Harga</h3>
-        <p class="text-sm text-gray-500 mb-4" id="htawar-modal-nama"></p>
-        
-        <div class="mb-3 bg-gray-100 rounded-lg p-3">
-            <label class="block text-xs font-medium text-gray-500 mb-1">Harga Beli (Referensi)</label>
-            <p id="htawar-modal-ref" class="text-lg font-bold text-gray-700">Rp 0</p>
-        </div>
+        <h3 class="text-fluid-lg font-bold text-gray-800 mb-1">💰 Input Harga</h3>
+        <p class="text-fluid-sm text-gray-500 mb-4" id="htawar-modal-nama"></p>
 
         <div class="mb-3">
-            <label class="block text-sm font-medium text-gray-700 mb-1" id="htawar-jumlah-label">Jumlah Botol</label>
+            <label class="block text-fluid-sm font-medium text-gray-700 mb-1" id="htawar-jumlah-label">Jumlah Botol</label>
             <label for="htawar-jumlah-input"></label><input type="number" id="htawar-jumlah-input" min="1" value="1" placeholder="Contoh: 10"
-                                                           class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-500">
+                                                           class="w-full border-2 border-indigo-300 rounded-lg p-3 text-fluid-lg focus:outline-none focus:border-indigo-500">
             <p class="text-[10px] text-indigo-600 mt-1" id="htawar-jumlah-hint"></p>
         </div>
 
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1" id="htawar-harga-label">Harga Jual (Rp)</label>
+            <label class="block text-fluid-sm font-medium text-gray-700 mb-1" id="htawar-harga-label">Harga Jual (Rp)</label>
             <label for="htawar-modal-input"></label><input type="text" id="htawar-modal-input" inputmode="numeric" placeholder="Contoh: 25.000"
-                                                           class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-500 format-number">
+                                                           class="w-full border-2 border-indigo-300 rounded-lg p-3 text-fluid-lg focus:outline-none focus:border-indigo-500 format-number">
         </div>
 
         <div class="flex gap-3">

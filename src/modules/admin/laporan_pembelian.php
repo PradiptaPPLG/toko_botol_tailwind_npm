@@ -23,8 +23,10 @@ $stok_masuk_raw = query("
         'Stok Masuk' as tipe,
         '📦' as icon,
         p.nama_produk,
+        p.botol_perdus,
         sm.jumlah,
         sm.harga_beli_satuan,
+        sm.harga_perdus,
         sm.total_belanja,
         sm.keterangan,
         NULL as cabang_tujuan_id,
@@ -167,14 +169,28 @@ usort($all_movements, function($a, $b) {
     return strtotime($b['created_at']) - strtotime($a['created_at']);
 });
 
-// Calculate totals
-$total_masuk = count($stok_masuk_batches);
-$total_rusak = count($stok_rusak_batches);
-$total_transfer = count($stok_transfer_batches);
-$jumlah_masuk = array_sum(array_column($stok_masuk, 'total_jumlah'));
-$jumlah_rusak = array_sum(array_column($stok_rusak, 'total_jumlah'));
-$jumlah_transfer = array_sum(array_column($stok_transfer, 'total_jumlah'));
-$total_belanja_masuk = array_sum(array_column($stok_masuk, 'total_belanja'));
+// Calculate totals based on filter
+$total_masuk = 0;
+$total_rusak = 0;
+$total_transfer = 0;
+$jumlah_masuk = 0;
+$jumlah_rusak = 0;
+$jumlah_transfer = 0;
+$total_belanja_masuk = 0;
+
+foreach ($all_movements as $movement) {
+    if ($movement['tipe'] === 'Stok Masuk') {
+        $total_masuk++;
+        $jumlah_masuk += $movement['total_jumlah'];
+        $total_belanja_masuk += $movement['total_belanja'];
+    } elseif ($movement['tipe'] === 'Stok Rusak') {
+        $total_rusak++;
+        $jumlah_rusak += $movement['total_jumlah'];
+    } elseif ($movement['tipe'] === 'Transfer') {
+        $total_transfer++;
+        $jumlah_transfer += $movement['total_jumlah'];
+    }
+}
 // Encode detail for JS
 $batch_detail_js = json_encode($stok_masuk_detail, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT);
 
@@ -187,7 +203,7 @@ $total_pages = ceil($total_data / $limit);
 $movements_page = array_slice($all_movements, $offset, $limit);
 ?>
 <div class="p-6">
-    <h1 class="judul text-3xl font-bold text-gray-800 mb-6 flex items-center">
+    <h1 class="judul text-fluid-3xl font-bold text-gray-800 mb-6 flex items-center">
         <span class="mr-3">📦</span> LAPORAN RIWAYAT STOK
     </h1>
 
@@ -195,21 +211,21 @@ $movements_page = array_slice($all_movements, $offset, $limit);
     <div class="bg-white rounded-lg shadow p-4 mb-6">
         <form method="GET" id="filter-form" class="flex flex-wrap md:flex-nowrap items-end gap-3">
             <div class="flex-1 min-w-35">
-                <label class="block text-gray-700 font-medium mb-1 text-xs uppercase tracking-wider">📅 Mulai</label>
+                <label class="block text-gray-700 font-medium mb-1 text-fluid-xs uppercase tracking-wider">📅 Mulai</label>
                 <label>
-                    <input type="date" name="tanggal_mulai" value="<?= $tanggal_mulai ?>" class="w-full border rounded-lg p-2 text-sm" onchange="document.getElementById('filter-form').submit()">
+                    <input type="date" name="tanggal_mulai" value="<?= $tanggal_mulai ?>" class="w-full border rounded-lg p-2 text-fluid-sm" onchange="document.getElementById('filter-form').submit()">
                 </label>
             </div>
             <div class="flex-1 min-w-35">
-                <label class="block text-gray-700 font-medium mb-1 text-xs uppercase tracking-wider">📅 Akhir</label>
+                <label class="block text-gray-700 font-medium mb-1 text-fluid-xs uppercase tracking-wider">📅 Akhir</label>
                 <label>
-                    <input type="date" name="tanggal_akhir" value="<?= $tanggal_akhir ?>" class="w-full border rounded-lg p-2 text-sm" onchange="document.getElementById('filter-form').submit()">
+                    <input type="date" name="tanggal_akhir" value="<?= $tanggal_akhir ?>" class="w-full border rounded-lg p-2 text-fluid-sm" onchange="document.getElementById('filter-form').submit()">
                 </label>
             </div>
             <div class="flex-1 min-w-37.5">
-                <label class="block text-gray-700 font-medium mb-1 text-xs uppercase tracking-wider">📋 Tipe</label>
+                <label class="block text-gray-700 font-medium mb-1 text-fluid-xs uppercase tracking-wider">📋 Tipe</label>
                 <label>
-                    <select name="tipe" class="w-full border rounded-lg p-2 text-sm" onchange="document.getElementById('filter-form').submit()">
+                    <select name="tipe" class="w-full border rounded-lg p-2 text-fluid-sm" onchange="document.getElementById('filter-form').submit()">
                         <option value="semua" <?= $tipe_filter == 'semua' ? 'selected' : '' ?>>Semua</option>
                         <option value="masuk" <?= $tipe_filter == 'masuk' ? 'selected' : '' ?>>Stok Masuk</option>
                         <option value="rusak" <?= $tipe_filter == 'rusak' ? 'selected' : '' ?>>Stok Rusak</option>
@@ -224,30 +240,30 @@ $movements_page = array_slice($all_movements, $offset, $limit);
 
     <!-- Rekap Total -->
     <div class="bg-linear-to-r from-indigo-700 to-purple-900 text-black p-8 rounded-lg shadow-lg mb-6">
-        <h2 class="text-2xl font-bold mb-6 flex items-center text-white">
+        <h2 class="text-fluid-2xl font-bold mb-6 flex items-center text-white">
             <span class="mr-3">📊</span> REKAP PERGERAKAN STOK <?= date('d/m/Y', strtotime($tanggal_mulai)) ?> - <?= date('d/m/Y', strtotime($tanggal_akhir)) ?>
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="bg-white bg-opacity-20 p-6 rounded-lg border border-white border-opacity-20">
-                <p class="text-sm opacity-90 font-bold uppercase tracking-wider">📦 STOK MASUK</p>
-                <p class="text-5xl font-bold mt-2 font-mono"><?= $total_masuk ?></p>
-                <p class="text-xs mt-2 opacity-75"><?= number_format($jumlah_masuk, 0, ',', '.') ?> botol</p>
+                <p class="text-fluid-sm opacity-90 font-bold uppercase tracking-wider">📦 STOK MASUK</p>
+                <p class="text-fluid-3xl font-bold mt-2 font-mono"><?= $total_masuk ?></p>
+                <p class="text-fluid-xs mt-2 opacity-75"><?= number_format($jumlah_masuk, 0, ',', '.') ?> botol</p>
             </div>
             <div class="bg-white bg-opacity-20 p-6 rounded-lg border border-white border-opacity-20">
-                <p class="text-sm opacity-90 font-bold uppercase tracking-wider">💰 TOTAL BELANJA</p>
-                <p class="text-3xl font-bold mt-2 font-mono"><?= rupiah($total_belanja_masuk) ?></p>
-                <p class="text-xs mt-2 opacity-75">Dari stok masuk</p>
+                <p class="text-fluid-sm opacity-90 font-bold uppercase tracking-wider">💰 TOTAL BELANJA</p>
+                <p class="text-fluid-3xl font-bold mt-2 font-mono"><?= rupiah($total_belanja_masuk) ?></p>
+                <p class="text-fluid-xs mt-2 opacity-75">Dari stok masuk</p>
             </div>
             <div class="bg-white bg-opacity-20 p-6 rounded-lg border border-white border-opacity-20">
-                <p class="text-sm opacity-90 font-bold uppercase tracking-wider">❌ STOK RUSAK</p>
-                <p class="text-5xl font-bold mt-2 font-mono"><?= $total_rusak ?></p>
-                <p class="text-xs mt-2 opacity-75"><?= number_format($jumlah_rusak, 0, ',', '.') ?> botol</p>
+                <p class="text-fluid-sm opacity-90 font-bold uppercase tracking-wider">❌ STOK RUSAK</p>
+                <p class="text-fluid-3xl font-bold mt-2 font-mono"><?= $total_rusak ?></p>
+                <p class="text-fluid-xs mt-2 opacity-75"><?= number_format($jumlah_rusak, 0, ',', '.') ?> botol</p>
             </div>
             <div class="bg-white bg-opacity-20 p-6 rounded-lg border border-white border-opacity-20">
-                <p class="text-sm opacity-90 font-bold uppercase tracking-wider">🚚 TRANSFER</p>
-                <p class="text-5xl font-bold mt-2 font-mono"><?= $total_transfer ?></p>
-                <p class="text-xs mt-2 opacity-75"><?= number_format($jumlah_transfer, 0, ',', '.') ?> botol</p>
+                <p class="text-fluid-sm opacity-90 font-bold uppercase tracking-wider">🚚 TRANSFER</p>
+                <p class="text-fluid-3xl font-bold mt-2 font-mono"><?= $total_transfer ?></p>
+                <p class="text-fluid-xs mt-2 opacity-75"><?= number_format($jumlah_transfer, 0, ',', '.') ?> botol</p>
             </div>
         </div>
     </div>
@@ -255,7 +271,7 @@ $movements_page = array_slice($all_movements, $offset, $limit);
     <!-- Riwayat Pergerakan Stok -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <div class="bg-gray-800 text-white p-4">
-            <h2 class="text-xl font-bold">📋 RIWAYAT PERGERAKAN STOK (KLIK BARIS UNTUK DETAIL)</h2>
+            <h2 class="text-fluid-xl font-bold">📋 RIWAYAT PERGERAKAN STOK (KLIK BARIS UNTUK DETAIL)</h2>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full">
@@ -279,17 +295,17 @@ $movements_page = array_slice($all_movements, $offset, $limit);
                                 <?= date('d/m/Y H:i', strtotime($m['created_at'])) ?>
                             </td>
                             <td class="p-3">
-                                <span class="px-3 py-1 rounded-full text-xs font-bold <?= $m['badge_color'] ?>">
+                                <span class="px-3 py-1 rounded-full text-fluid-xs font-bold <?= $m['badge_color'] ?>">
                                     <?= $m['icon'] ?> <?= $m['tipe'] ?>
                                 </span>
                             </td>
                             <td class="p-3 font-semibold">
                                 <span class="font-mono text-[10px] text-indigo-600"><?= $m['batch_id'] ?></span>
-                                <span class="text-xs text-gray-500 ml-1">(<?= $m['produk_count'] ?> produk)</span>
+                                <span class="text-fluid-xs text-gray-500 ml-1">(<?= $m['produk_count'] ?> produk)</span>
                             </td>
                             <td class="p-3">
-                                <span class="font-bold text-lg"><?= number_format($m['total_jumlah'], 0, ',', '.') ?></span>
-                                <span class="text-sm text-gray-600">botol</span>
+                                <span class="font-bold text-fluid-lg"><?= number_format($m['total_jumlah'], 0, ',', '.') ?></span>
+                                <span class="text-fluid-sm text-gray-600">botol</span>
                             </td>
                             <td class="p-3">
                                 <?php if (isset($m['total_belanja']) && $m['total_belanja'] > 0): ?>
@@ -298,17 +314,17 @@ $movements_page = array_slice($all_movements, $offset, $limit);
                                     <span class="text-gray-400">-</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="p-3 text-sm text-gray-700">
+                            <td class="p-3 text-fluid-sm text-gray-700">
                                 <?= $m['keterangan'] ?? '-' ?>
                             </td>
                             <td class="p-3">
                                 <?php if (!empty($m['cabang_tujuan_nama'])): ?>
-                                    <span class="text-sm font-semibold text-blue-600">
+                                    <span class="text-fluid-sm font-semibold text-blue-600">
                                         🏢 <?= $m['cabang_tujuan_nama'] ?>
                                     </span>
                                 <?php else: ?>
                                     <button onclick="event.stopPropagation(); showBatchDetail('<?= $m['batch_id'] ?>')"
-                                            class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded text-xs">
+                                            class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded text-fluid-xs">
                                         📄 Detail
                                     </button>
                                 <?php endif; ?>
@@ -344,7 +360,7 @@ $movements_page = array_slice($all_movements, $offset, $limit);
     <!-- Note -->
     <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mt-6 rounded-lg">
         <h3 class="font-bold text-blue-900 mb-2">📌 Keterangan:</h3>
-        <ul class="text-sm text-gray-700 space-y-1">
+        <ul class="text-fluid-sm text-gray-700 space-y-1">
             <li><strong>📦 Stok Masuk:</strong> Barang yang masuk ke gudang dari supplier (klik untuk detail)</li>
             <li><strong>❌ Stok Rusak:</strong> Barang yang rusak atau tidak layak jual</li>
             <li><strong>🚚 Transfer:</strong> Barang yang dipindahkan antar cabang</li>
@@ -353,11 +369,11 @@ $movements_page = array_slice($all_movements, $offset, $limit);
 </div>
 
 <!-- Batch Detail Modal -->
-<div id="batchDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+<div id="batchDetailModal" class="fixed inset-0 bg-transparent z-50 hidden items-center justify-center">
     <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div id="modalHeader" class="sticky top-0 bg-indigo-800 text-white p-4 flex justify-between items-center">
-            <h3 id="modalTitle" class="text-xl font-bold">📦 DETAIL STOK MASUK</h3>
-            <button onclick="closeBatchDetail()" class="text-white hover:text-gray-300 text-2xl">&times;</button>
+            <h3 id="modalTitle" class="text-fluid-xl font-bold">📦 DETAIL STOK MASUK</h3>
+            <button onclick="closeBatchDetail()" class="text-white hover:text-gray-300 text-fluid-2xl">&times;</button>
         </div>
         <div id="batchDetailContent" class="p-6">
             <p class="text-center text-gray-400">Memuat...</p>
@@ -397,23 +413,24 @@ function showBatchDetail(batchId) {
         let html = `
             <div class="flex justify-between items-end mb-4 border-b pb-2">
                 <div>
-                    <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Batch/Ref ID</p>
+                    <p class="text-fluid-xs text-gray-500 uppercase font-bold tracking-wider">Batch/Ref ID</p>
                     <p class="font-mono font-bold text-indigo-600">${batchId}</p>
                 </div>
                 <div class="text-right">
-                    <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Tanggal</p>
-                    <p class="text-sm">${new Date(items[0].created_at).toLocaleString('id-ID')}</p>
+                    <p class="text-fluid-xs text-gray-500 uppercase font-bold tracking-wider">Tanggal</p>
+                    <p class="text-fluid-sm">${new Date(items[0].created_at).toLocaleString('id-ID')}</p>
                 </div>
             </div>
-            <p class="text-sm text-gray-600 mb-4 bg-gray-50 p-2 rounded"><strong>Keterangan:</strong> ${items[0].keterangan || '-'}</p>
-            ${items[0].cabang_tujuan_nama ? `<p class="text-sm text-blue-600 mb-4 font-bold">🏢 Tujuan: ${items[0].cabang_tujuan_nama}</p>` : ''}
-            <table class="w-full text-sm mb-4">
+            <p class="text-fluid-sm text-gray-600 mb-4 bg-gray-50 p-2 rounded"><strong>Keterangan:</strong> ${items[0].keterangan || '-'}</p>
+            ${items[0].cabang_tujuan_nama ? `<p class="text-fluid-sm text-blue-600 mb-4 font-bold">🏢 Tujuan: ${items[0].cabang_tujuan_nama}</p>` : ''}
+            <table class="w-full text-fluid-sm mb-4">
                 <thead class="bg-gray-100">
                     <tr>
                         <th class="p-2 text-left">Produk</th>
                         <th class="p-2 text-right">Jumlah</th>
                         ${type === 'Stok Masuk' ? `
                         <th class="p-2 text-right">Harga Beli/Satuan</th>
+                        <th class="p-2 text-right">Harga Perdus</th>
                         <th class="p-2 text-right">Subtotal</th>
                         ` : ''}
                     </tr>
@@ -421,6 +438,7 @@ function showBatchDetail(batchId) {
                 <tbody>`;
         items.forEach(item => {
             const subtotal = (parseFloat(item.total_belanja)) || (parseFloat(item.jumlah) * (parseFloat(item.harga_beli_satuan) || 0));
+            const hargaPerdus = parseFloat(item.harga_perdus) || 0;
             totalVal += subtotal;
             totalBotol += parseFloat(item.jumlah);
             html += `
@@ -429,6 +447,7 @@ function showBatchDetail(batchId) {
                     <td class="p-2 text-right">${parseInt(item.jumlah).toLocaleString('id-ID')} botol</td>
                     ${type === 'Stok Masuk' ? `
                     <td class="p-2 text-right">${formatRupiah(item.harga_beli_satuan)}</td>
+                    <td class="p-2 text-right text-indigo-700 font-semibold">${formatRupiah(hargaPerdus)}</td>
                     <td class="p-2 text-right font-bold text-green-700">${formatRupiah(subtotal)}</td>
                     ` : ''}
                 </tr>`;
@@ -437,13 +456,13 @@ function showBatchDetail(batchId) {
             </table>
             <div class="bg-gray-100 rounded-lg p-4 flex justify-between items-center">
                 <div>
-                    <span class="text-sm text-gray-600 tracking-wider font-bold">TOTAL ITEM: </span>
-                    <span class="text-lg font-bold">${parseInt(totalBotol).toLocaleString('id-ID')} botol</span>
+                    <span class="text-fluid-sm text-gray-600 tracking-wider font-bold">TOTAL ITEM: </span>
+                    <span class="text-fluid-lg font-bold">${parseInt(totalBotol).toLocaleString('id-ID')} botol</span>
                 </div>
                 ${type === 'Stok Masuk' ? `
                 <div>
-                    <span class="text-sm text-gray-600 tracking-wider font-bold">TOTAL BELANJA: </span>
-                    <span class="text-xl font-bold text-indigo-700">${formatRupiah(totalVal)}</span>
+                    <span class="text-fluid-sm text-gray-600 tracking-wider font-bold">TOTAL BELANJA: </span>
+                    <span class="text-fluid-xl font-bold text-indigo-700">${formatRupiah(totalVal)}</span>
                 </div>
                 ` : ''}
             </div>`;
@@ -464,7 +483,7 @@ document.getElementById('batchDetailModal').addEventListener('click', function(e
 });
 
 function formatRupiah(n) {
-    return 'Rp ' + parseFloat(n || 0).toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    return 'Rp&nbsp;' + parseFloat(n || 0).toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 }
 </script>
 
